@@ -1,4 +1,4 @@
 Baiduyun
 ========
 
-linux client of baiduyun
+linux client for Baidu Yun
