@@ -71,6 +71,21 @@ namespace by {
     return ::json_object_get_string(jobj_);
   }
 
+  template <>
+  unsigned int JsonEntry::Value<unsigned int>()  const {
+    assert(jobj_ != 0);
+    return ::json_object_get_int(jobj_);
+  }
+
+  template <>
+  JsonEntry::list JsonEntry::Value<JsonEntry::list>() const {
+    std::size_t count = ::json_object_array_length(jobj_);
+    list result;
+    for (std::size_t i = 0 ; i < count ; ++i)
+      result.push_front(JsonEntry(::json_object_array_get_idx(jobj_, i)));
+    return result;
+  }
+
   JsonEntry::~JsonEntry() {
     assert(jobj_ != 0);
     if (jobj_ != 0)

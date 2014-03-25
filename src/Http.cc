@@ -9,6 +9,7 @@
 #include <iostream>
 #include <streambuf>
 #include <sstream>
+#include <fstream>
 
 #include "http.h"
 
@@ -41,15 +42,25 @@ std::size_t WriteCallback(char *data,
   return count;
 }
 
+std::size_t Callback(char *data,
+                     size_t size,
+                     size_t nmemb,
+                     std::ofstream *file) {
+  assert(data != 0);
+  std::size_t count = size * nmemb;
+
+  return file->rdbuf()->sputn( data, count ) ;;
+}
+
 CURL* InitCurl(const std::string& url, std::string *resp, const Headers& hdr) {
   CURL *curl = curl_easy_init();
   if (curl == 0)
     throw std::bad_alloc();
-  curl_easy_setopt(curl, CURLOPT_URL,       url.c_str());
-  curl_easy_setopt(curl, CURLOPT_HEADER,       0);
+  curl_easy_setopt(curl, CURLOPT_URL,             url.c_str());
+  curl_easy_setopt(curl, CURLOPT_HEADER,          0);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION,  1);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,  WriteCallback);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA,    resp);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,   WriteCallback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA,       resp);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER,  0L);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST,  0L);
   struct curl_slist *curl_hdr = 0;
@@ -75,17 +86,38 @@ void DoCurl(CURL *curl) {
 }
 
 std::string HttpPostData(
-  const std::string& url,
-  const std::string& data,
-  const Headers& hdr) {
+    const std::string& url,
+    const std::string& data,
+    const Headers& hdr) {
   std::string resp;
   CURL *curl = InitCurl(url, &resp, hdr);
   std::string post_data = data;
   curl_easy_setopt(curl, CURLOPT_POST, 1);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS,    &post_data[0]);
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE,   post_data.size());
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.size());
   DoCurl(curl);
   std::cout << resp <<std::endl;
   return resp;
+}
+
+std::string HttpGet(
+    const std::string& url,
+    const Headers& hdr) {
+  std::string resp;
+  CURL *curl = InitCurl(url, &resp, hdr);
+  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+  DoCurl(curl);
+  return resp;
+}
+
+void HttpGetFile(
+  const std::string& url,
+  std::ofstream *mfile,
+  const Headers& hdr) {
+  CURL *curl = InitCurl(url, 0, hdr);
+  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA,     mfile);
+  DoCurl(curl);
 }
 }  // namespace by

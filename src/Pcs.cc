@@ -26,7 +26,6 @@ namespace by {
             "&redirect_uri=oob";
 
     JsonEntry resp = JsonEntry::Parse(HttpPostData(kTokenURL, post));
-    // JsonEntry resp (HttpPostData(token_url, post));
     access_token_  = resp["access_token"].Value<std::string>();
     std::cout << access_token_ << std::endl;
   }

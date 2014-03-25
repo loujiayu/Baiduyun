@@ -13,7 +13,7 @@
 
 #include "pcs.h"
 #include "jsonentry.h"
-
+#include "filetrans.h"
 namespace by {
 
 const std::string& ConfigFilename() {
@@ -70,5 +70,7 @@ int main(int argc, char *argv[]) {
       }
     }
   }
+  FileTrans ft(config["access_token"].Value<std::string>());
+  ft.DownLoads();
   return 0;
 }

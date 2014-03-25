@@ -12,6 +12,7 @@
 #include "macro.h"
 
 namespace by {
+
 class Pcs {
  public:
   Pcs(const std::string client_id,

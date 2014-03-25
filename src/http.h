@@ -34,7 +34,16 @@ void DoCurl(CURL *curl);
 std::string HttpPostData(
   const std::string& url,
   const std::string& data,
-  const Headers& hdr = Headers());
+  const Headers&     hdr = Headers());
+
+void HttpGetFile(
+  const std::string& url,
+  std::ofstream *mfile,
+  const Headers&     hdr = Headers());
+
+std::string HttpGet(const std::string& url,
+                    const Headers&     hdr = Headers());
+
 }  // namespace by
 
 #endif  // SRC_HTTP_H_

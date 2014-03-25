@@ -9,6 +9,8 @@ add_executable( baiduyun
 	src/Pcs.cc
 	src/JsonEntry.cc
 	src/Http.cc
+  src/filetrans.cc
+  src/filesystem.cc
  )
 target_link_libraries( baiduyun
 	curl

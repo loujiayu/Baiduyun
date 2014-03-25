@@ -8,11 +8,14 @@
 #define SRC_JSONENTRY_H_
 
 #include <string>
+#include <forward_list>
 
 namespace by {
 
 class JsonEntry {
  public:
+  typedef std::forward_list<JsonEntry> list;
+
   explicit JsonEntry(struct json_object *JsonEntry);
   explicit JsonEntry(const std::string& str);
 
