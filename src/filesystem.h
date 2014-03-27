@@ -17,7 +17,7 @@ class JsonEntry;
 
 bool IsDir(const JsonEntry& jobj);
 std::string ParseFileName(const JsonEntry& jobj);
-
+std::string FileFromPath(const std::string& path);
 }  // namespace by
 
 #endif  // SRC_FILESYSTEM_H_

@@ -12,6 +12,8 @@
 #include "http.h"
 #include "jsonentry.h"
 
+
+
 namespace by {
 
 const std::string token_url   = "https://d.pcs.baidu.com/rest/2.0/pcs/file";
@@ -20,45 +22,45 @@ FileTrans::FileTrans(const std::string&  access_token) :
             access_token_(access_token) {}
 
 void FileTrans::FileInfo() {
-  std::string url = token_url +
-                    "?method=list"
-                    "&access_token=" + access_token_ +
-                    "&path=/apps/ldrive";
 
-  JsonEntry resp = JsonEntry::Parse(HttpGet(url));
-  JsonEntry::list filearray = resp["list"].Value<JsonEntry::list>();
-  std::cout << IsDir(*filearray.begin()) << std::endl;
 }
 
-void FileTrans::DownLoads() {
+void FileTrans::DownLoads(const fs::path& p) {
+  std::string sub_dir = "";
+  if(p.compare(fs::current_path())) {
+    sub_dir = FileFromPath(p.string());
+    fs::path sub_p = fs::absolute(sub_dir);
+    fs::create_directory(sub_p);
+  }
   std::string filelist_url = token_url +
                     "?method=list"
                     "&access_token=" + access_token_ +
-                    "&path="         + root_name;
+                    "&path="         + root_name     + '/' +sub_dir;
 
   JsonEntry resp = JsonEntry::Parse(HttpGet(filelist_url));
   JsonEntry::list filelist = resp["list"].Value<JsonEntry::list>();
 
   for (auto iter = filelist.begin(); iter != filelist.end(); ++iter) {
-    if (IsDir(*iter))
-      continue;
+    if (IsDir(*iter)) {
+      std::string local_path = p.string() + '/' +
+                            FileFromPath(ParseFileName(*iter));
+      DownLoads(local_path);
+    }
     else
-      Update(*iter);
+      Update(*iter,p);
   }
 }
 
-void FileTrans::Update(const JsonEntry& jobj) {
-  std::string filename = ParseFileName(jobj);
-  std::cout << filename << std::endl;
+void FileTrans::Update(const JsonEntry& jobj,const fs::path& p) {
+  std::string remote_path = ParseFileName(jobj);
+  std::cout << remote_path << std::endl;
 
   std::string url = token_url +
                     "?method=download"
                     "&access_token=" + access_token_ +
-                    "&path="         + filename;
-
-  std::ofstream mfile(
-    filename.substr(root_name.size()),
-    std::ios::out | std::ios::binary);
+                    "&path="         + remote_path;
+  std::string local_path = p.string() + '/' + FileFromPath(remote_path);
+  std::ofstream mfile(local_path, std::ios::out | std::ios::binary);
   HttpGetFile(url, &mfile);
 }
 

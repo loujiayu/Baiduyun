@@ -20,4 +20,9 @@ std::string ParseFileName(const JsonEntry& jobj) {
   return path;
 }
 
+std::string FileFromPath(const std::string& path) {
+  auto found = path.find_last_of("/\\");
+  return path.substr(found + 1);
+}
+
 }  // namespace by

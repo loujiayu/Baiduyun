@@ -6,9 +6,9 @@
 
 #include <assert.h>
 #include <getopt.h>
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
 #include <string>
 
 #include "pcs.h"

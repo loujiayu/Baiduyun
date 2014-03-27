@@ -7,20 +7,23 @@
 #ifndef SRC_FILETRANS_H_
 #define SRC_FILETRANS_H_
 
+#include <stdlib.h>
 #include <string>
+#include <boost/filesystem.hpp>
 
 #include "macro.h"
 
 namespace by {
 
+namespace fs = boost::filesystem;
 class JsonEntry;
 
 class FileTrans {
  public:
   explicit FileTrans(const std::string&  access_token);
-  void DownLoads();
+  void DownLoads(const fs::path& base = fs::current_path());
   void FileInfo();
-  void Update(const JsonEntry& jobj);
+  void Update(const JsonEntry& jobj,const fs::path& p);
 
  private:
   std::string access_token_;
