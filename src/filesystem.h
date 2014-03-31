@@ -11,7 +11,7 @@
 #include <boost/filesystem.hpp>
 
 #include "macro.h"
-#include "jsonentry.h"
+
 namespace fs = boost::filesystem;
 
 namespace by {
@@ -23,15 +23,15 @@ class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
   DirIter(const std::string& path);
   DirIter(const DirIter& mit) : path_(mit.path_),
                                 filesystem_iter(mit.filesystem_iter),
-                                json(mit.json) {}
+                                jstring(mit.jstring) {}
   DirIter& operator++();
   DirIter operator++(int);
-  JsonEntry& operator*();
+  std::string& operator*();
 
  private:
   std::string path_;
   fs::directory_iterator filesystem_iter;
-  JsonEntry json;
+  std::string jstring;
 };
 
 std::string MD5(std::streambuf *file);

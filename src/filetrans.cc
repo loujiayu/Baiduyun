@@ -77,6 +77,6 @@ void FileTrans::Syn(const fs::path& p) {
   JsonEntry jsonentry;
   jsonentry.Add("path",JsonEntry(p.string()));
 
-  std::cout << (*DirIter(p.string())).Getstring();
+  std::cout << *DirIter(p.string());
 }
 }  // namespace by

@@ -27,7 +27,7 @@ class JsonEntry {
 
   void Swap(JsonEntry& tmp);
   static JsonEntry Parse(const std::string& str);
-  std::string Getstring() { return json_object_get_string(jobj_); }
+  std::string getstring() { return json_object_get_string(jobj_); }
   void Add(const std::string& key, const JsonEntry& jsonentry);
 
   JsonEntry& operator=( const JsonEntry& rhs );
@@ -38,7 +38,7 @@ class JsonEntry {
   T Value() const;
 
  private:
-  struct json_object  *jobj_;
+  struct json_object *jobj_;
 };
 }  // namespace by
 

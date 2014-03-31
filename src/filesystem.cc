@@ -15,14 +15,14 @@
 namespace by {
 
 DirIter::DirIter(const std::string& p) : path_(p) {
-  //JsonEntry jsonentry;
+  JsonEntry json;
   filesystem_iter = fs::directory_iterator(path_);
   std::string file= (*filesystem_iter).path().string();
   std::ifstream ifile(file.c_str(), std::ios::binary | std::ios::out);
   std::string md5 = MD5(ifile.rdbuf());
   json.Add("path",JsonEntry(path_));
   json.Add("md5",JsonEntry(md5));
-  //std::cout << json.Getstring();
+  jstring = json.getstring();
 }
 
 DirIter& DirIter::operator++() {
@@ -36,7 +36,9 @@ DirIter DirIter::operator++(int) {
   return tmp;
 }
 
-JsonEntry& DirIter::operator*() { return json; }
+std::string& DirIter::operator*() {
+  return jstring;
+}
 
 bool IsDir(const JsonEntry& json) {
   return json["isdir"].Value<unsigned int>();
