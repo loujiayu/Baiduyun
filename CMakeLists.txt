@@ -16,5 +16,6 @@ add_executable( baiduyun
  )
 target_link_libraries( baiduyun
   ${Boost_LIBRARIES}
+  crypto
 	curl
 	json-c)

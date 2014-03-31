@@ -6,7 +6,7 @@
 
 #include <fstream>
 #include <iostream>
-
+#include <json-c/json.h>
 #include "filesystem.h"
 #include "filetrans.h"
 #include "http.h"
@@ -27,15 +27,17 @@ void FileTrans::FileInfo() {
 
 void FileTrans::DownLoads(const fs::path& p) {
   std::string sub_dir = "";
-  if(p.compare(fs::current_path())) {
+  if(FileFromPath(p.string()) != "Baidu Yun") {
     sub_dir = FileFromPath(p.string());
-    fs::path sub_p = fs::absolute(sub_dir);
-    fs::create_directory(sub_p);
+   // fs::path sub_p = fs::absolute(sub_dir);
+    //fs::create_directory(sub_p);
   }
+  if(!fs::exists(p))
+    fs::create_directory(p);
   std::string filelist_url = token_url +
                     "?method=list"
                     "&access_token=" + access_token_ +
-                    "&path="         + root_name     + '/' +sub_dir;
+                    "&path="         + root_name      +sub_dir;
 
   JsonEntry resp = JsonEntry::Parse(HttpGet(filelist_url));
   JsonEntry::list filelist = resp["list"].Value<JsonEntry::list>();
@@ -64,4 +66,17 @@ void FileTrans::Update(const JsonEntry& jobj,const fs::path& p) {
   HttpGetFile(url, &mfile);
 }
 
+void FileTrans::Syn(const fs::path& p) {
+  std::string vf = p.string() + "/.baiduyun";
+  if(!fs::exists(p)) {
+    fs::create_directory(p);
+    DownLoads(p);
+    std::ofstream ofile(vf);
+  }
+
+  JsonEntry jsonentry;
+  jsonentry.Add("path",JsonEntry(p.string()));
+
+  std::cout << (*DirIter(p.string())).Getstring();
+}
 }  // namespace by

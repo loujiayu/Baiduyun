@@ -52,6 +52,20 @@ namespace by {
     return JsonEntry(jobj_);
   }
 
+  JsonEntry& JsonEntry::operator=( const JsonEntry& rhs )
+  {
+    JsonEntry tmp( rhs ) ;
+    Swap( tmp ) ;
+    return *this ;
+  }
+
+  void JsonEntry::Swap( JsonEntry& other )
+  {
+    assert( jobj_ != 0 ) ;
+    assert( other.jobj_ != 0 ) ;
+    std::swap( jobj_, other.jobj_ ) ;
+  }
+
   JsonEntry JsonEntry::operator[](const std::string& key) const {
     assert(jobj_ != 0);
     struct json_object *jobj = ::json_object_object_get(jobj_, key.c_str());

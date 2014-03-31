@@ -9,6 +9,7 @@
 
 #include <string>
 #include <forward_list>
+#include <json-c/json.h>
 
 namespace by {
 
@@ -24,10 +25,12 @@ class JsonEntry {
 
   ~JsonEntry();
 
+  void Swap(JsonEntry& tmp);
   static JsonEntry Parse(const std::string& str);
+  std::string Getstring() { return json_object_get_string(jobj_); }
+  void Add(const std::string& key, const JsonEntry& jsonentry);
 
-  void Add(const std::string& key, const JsonEntry& jsonEntry);
-
+  JsonEntry& operator=( const JsonEntry& rhs );
   JsonEntry operator[](const std::string& key) const;
   friend std::ostream& operator<<(std::ostream& os, const JsonEntry& JsonEntry);
 

@@ -21,9 +21,10 @@ class JsonEntry;
 class FileTrans {
  public:
   explicit FileTrans(const std::string&  access_token);
-  void DownLoads(const fs::path& base = fs::current_path());
+  void DownLoads(const fs::path& path);
   void FileInfo();
   void Update(const JsonEntry& jobj,const fs::path& p);
+  void Syn(const fs::path& path);
 
  private:
   std::string access_token_;
