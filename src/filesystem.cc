@@ -14,19 +14,30 @@
 
 namespace by {
 
+DirIter::DirIter() {
+  filesystem_iter = fs::directory_iterator();
+}
+
 DirIter::DirIter(const std::string& p) : path_(p) {
-  JsonEntry json;
   filesystem_iter = fs::directory_iterator(path_);
+  UpdatePara();
+}
+
+void DirIter::UpdatePara() {
+  JsonEntry json;
   std::string file= (*filesystem_iter).path().string();
   std::ifstream ifile(file.c_str(), std::ios::binary | std::ios::out);
   std::string md5 = MD5(ifile.rdbuf());
-  json.Add("path",JsonEntry(path_));
+  json.Add("path",JsonEntry((*filesystem_iter).path().string()));
   json.Add("md5",JsonEntry(md5));
   jstring = json.getstring();
 }
 
 DirIter& DirIter::operator++() {
   ++filesystem_iter;
+  if(filesystem_iter == fs::directory_iterator())
+    return *this;
+  UpdatePara();
   return *this;
 }
 
@@ -36,8 +47,8 @@ DirIter DirIter::operator++(int) {
   return tmp;
 }
 
-std::string& DirIter::operator*() {
-  return jstring;
+JsonEntry DirIter::operator*() {
+  return JsonEntry::Parse(jstring);
 }
 
 bool IsDir(const JsonEntry& json) {
@@ -61,8 +72,7 @@ std::string MD5(std::streambuf *file)
   EVP_MD_CTX_init( &md );
   EVP_DigestInit_ex( &md, EVP_md5(), 0 );
   std::size_t count = 0 ;
-  while ( (count = file->sgetn( buf, sizeof(buf) )) > 0 )
-  {
+  while ( (count = file->sgetn( buf, sizeof(buf) )) > 0 ) {
     EVP_DigestUpdate( &md, buf, count );
   }
   unsigned int md5_size = EVP_MAX_MD_SIZE;

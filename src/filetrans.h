@@ -17,12 +17,13 @@ namespace by {
 
 namespace fs = boost::filesystem;
 class JsonEntry;
+typedef std::forward_list<JsonEntry> list;
 
 class FileTrans {
  public:
   explicit FileTrans(const std::string&  access_token);
   void DownLoads(const fs::path& path);
-  void FileInfo();
+  list FileInfo(const std::string& sub_dir);
   void Update(const JsonEntry& jobj,const fs::path& p);
   void Syn(const fs::path& path);
 
