@@ -10,6 +10,8 @@
 #include <streambuf>
 #include <sstream>
 #include <fstream>
+#include <memory>
+#include <cstring>
 
 #include "http.h"
 
@@ -40,6 +42,20 @@ std::size_t WriteCallback(char *data,
   std::size_t count = size * nmemb;
   resp->append(data, count);
   return count;
+}
+
+size_t ReadCallback( void *ptr,
+                     std::size_t size,
+                     std::size_t nmemb,
+                     std::string *data ) {
+  assert( ptr != 0 ) ;
+  assert( data != 0 ) ;
+  std::size_t count = std::min( size * nmemb, data->size() ) ;
+  if ( count > 0 ) {
+    std::memcpy( ptr, &(*data)[0], count ) ;
+    data->erase( 0, count ) ;
+  }
+  return count ;
 }
 
 std::size_t Callback(char *data,
@@ -95,8 +111,8 @@ std::string HttpPostData(
   curl_easy_setopt(curl, CURLOPT_POST, 1);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS,    &post_data[0]);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.size());
+  curl_easy_setopt(curl, CURLOPT_VERBOSE,     1 ) ;
   DoCurl(curl);
-  std::cout << resp <<std::endl;
   return resp;
 }
 
@@ -106,7 +122,7 @@ std::string HttpGet(
   std::string resp;
   CURL *curl = InitCurl(url, &resp, hdr);
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-  DoCurl(curl);
+  curl_easy_perform(curl);
   return resp;
 }
 
@@ -118,6 +134,38 @@ void HttpGetFile(
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA,     mfile);
-  DoCurl(curl);
+  curl_easy_perform(curl);
 }
+
+std::string Put(const std::string& url,const std::string& data,const Headers& hdr) {
+  std::string resp ;
+  CURL *curl = InitCurl( url, &resp, hdr ) ;
+
+  std::string put_data = data ;
+
+  curl_easy_setopt(curl, CURLOPT_UPLOAD,      1L ) ;
+  curl_easy_setopt(curl, CURLOPT_READFUNCTION,  &ReadCallback ) ;
+  curl_easy_setopt(curl, CURLOPT_READDATA ,   &put_data ) ;
+  curl_easy_setopt(curl, CURLOPT_INFILESIZE,    put_data.size() ) ;
+  curl_easy_setopt(curl, CURLOPT_VERBOSE,     1 ) ;
+  curl_easy_perform(curl);
+  return resp;
+}
+
+std::string Customizing(
+    const std::string& url,
+    const std::string& data,
+    const Headers& hdr) {
+  std::string resp;
+  CURL *curl = InitCurl(url, &resp, hdr);
+  std::string post_data = data;
+  curl_easy_setopt(curl, CURLOPT_POST, 1);
+  //curl_easy_setopt(curl,CURLOPT_CUSTOMREQUEST,"DELETE");
+  //curl_easy_setopt(curl, CURLOPT_POSTFIELDS,    &post_data[0]);
+  // curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.size());
+  curl_easy_setopt(curl, CURLOPT_VERBOSE,     1 ) ;
+  DoCurl(curl);
+  return resp;
+}
+
 }  // namespace by

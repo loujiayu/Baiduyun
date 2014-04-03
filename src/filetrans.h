@@ -19,17 +19,22 @@ namespace fs = boost::filesystem;
 class JsonEntry;
 typedef std::forward_list<JsonEntry> list;
 
+enum FileOperation {KDownloads=1,KDelete,KUploads,KPass};
+
 class FileTrans {
  public:
   explicit FileTrans(const std::string&  access_token);
-  void DownLoads(const fs::path& path);
-  list FileInfo(const std::string& sub_dir);
-  void Update(const JsonEntry& jobj,const fs::path& p);
-  void Syn(const fs::path& path);
-
+  void Downloads(const std::string& p);
+  list FileInfo(const std::string& sub_dir = "");
+  void DownloadFile(const std::string& path);
+  void Syn(const std::string& path);
+  void SynOperation(int flag,const std::string& path);
+  void LocalUpdate(const JsonEntry& jobj,list& flist);
+  void UploadFile(const std::string& path);
+  void DeleteFile(const std::string& path);
  private:
   std::string access_token_;
-
+  std::string markf;
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
 };
 

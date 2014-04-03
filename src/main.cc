@@ -71,8 +71,12 @@ int main(int argc, char *argv[]) {
     }
   }
   FileTrans ft(config["access_token"].Value<std::string>());
-  std::string p = fs::current_path().string() + "/Baidu Yun";
-  //ft.Syn(p);
-  ft.DownLoads(p);
+  std::string p = fs::current_path().string() + "/Baidu_Yun";
+  std::string file = p + "/.baiduyun";
+  ft.UploadFile(file);
+  ft.DeleteFile(file);
+  ft.FileInfo();
+  ft.Syn(p);
+  ft.Downloads(p);
   return 0;
 }

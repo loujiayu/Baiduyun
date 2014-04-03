@@ -28,6 +28,9 @@ class JsonEntry {
   std::string getstring() { return json_object_get_string(jobj_); }
   void Add(const std::string& key, const JsonEntry& jsonentry);
 
+  bool operator!=(const JsonEntry& rhs) { return jobj_ != rhs.jobj_; }
+  bool operator==(const JsonEntry& rhs) { return jobj_ == rhs.jobj_; }
+
   JsonEntry operator[](const std::string& key) const;
   friend std::ostream& operator<<(std::ostream& os, const JsonEntry& JsonEntry);
 

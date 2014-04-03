@@ -44,6 +44,12 @@ void HttpGetFile(
 std::string HttpGet(const std::string& url,
                     const Headers&     hdr = Headers());
 
+std::string Put(const std::string& url,const std::string& data,const Headers& hdr = Headers());
+
+std::string Customizing(
+    const std::string& url,
+    const std::string& data,
+    const Headers& hdr = Headers());
 }  // namespace by
 
 #endif  // SRC_HTTP_H_
