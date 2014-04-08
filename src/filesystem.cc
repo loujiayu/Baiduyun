@@ -60,6 +60,10 @@ std::string ParseFileName(const JsonEntry& json) {
   return path;
 }
 
+unsigned int ParseFilemTime(const JsonEntry& json) {
+  return json["mtime"].Value<unsigned int>();
+}
+
 std::string FileFromPath(const std::string& path) {
   auto found = path.find_last_of("/\\");
   return path.substr(found + 1);

@@ -4,6 +4,7 @@
  * http://opensource.org/licenses/MIT
  */
 
+#include <unistd.h>
 #include <assert.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -72,11 +73,12 @@ int main(int argc, char *argv[]) {
   }
   FileTrans ft(config["access_token"].Value<std::string>());
   std::string p = fs::current_path().string() + "/Baidu_Yun";
-  std::string file = p + "/.baiduyun";
-  ft.UploadFile(file);
-  ft.DeleteFile(file);
-  ft.FileInfo();
+  std::string file = p + "/asd";
+  // ft.UploadFile(file);
+  // ft.DeleteFile(file);
+  // ft.FileInfo();
   ft.Syn(p);
-  ft.Downloads(p);
+  // ft.Downloads(p);
+
   return 0;
 }

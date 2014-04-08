@@ -59,7 +59,7 @@ bool IsExists(const std::string& path,const JsonEntry& jobj) {
   std::string rpath = jobj["path"].Value<std::string>();
   std::string p1 = ExtractPath(path);
   std::string p2 = ExtractPath(rpath);
-  std::cout << p1 << std::endl << p2 << std::endl;
+  //std::cout << p1 << std::endl << p2 << std::endl;
   if(p2 == p1) {
     return true;
   } else {
@@ -75,21 +75,21 @@ void FileTrans::SynOperation(int flag,const std::string& path) {
       break;
     case KDownloads : {
       std::cout << "KDownloads" <<std::endl;
-      DownloadFile(path);
+     // DownloadFile(path);
       break;
     }
     case KDelete : {
       std::cout << "KDelete" <<std::endl;
-      if(path.compare(0,remote_rpath.size(),remote_rpath)) {
-        DeleteFile(path);
-      }
-      else
-        fs::remove(path);
+      // if(path.compare(0,remote_rpath.size(),remote_rpath)) {
+      //   DeleteFile(path);
+      // }
+      // else
+      //   fs::remove(path);
       break;
     }
     case KUploads : {
       std::cout << "KUploads" <<std::endl;
-      UploadFile(path);
+     // UploadFile(path);
       break;
     }
     default: break;
@@ -133,15 +133,12 @@ void FileTrans::Downloads(const std::string& p) {
 }
 
 void FileTrans::DownloadFile(const std::string& path) {
-  //std::string remote_path = ParseFileName(jobj);
-// std::cout << path << std::endl;
   std::string file = path.substr(local_rpath.size());
   std::string url = token_url +
                     "?method=download"
                     "&access_token=" + access_token_ +
                     "&path="         + remote_rpath  +
                     "/"              + file;
-  //std::string local_path = p.string() + '/' + FileFromPath(remote_path);
   std::ofstream mfile(path, std::ios::out | std::ios::binary);
   HttpGetFile(url, &mfile);
 }
@@ -172,14 +169,18 @@ void FileTrans::DeleteFile(const std::string& path) {
 
 void FileTrans::Syn(const std::string& p) {
   std::string sub_dir = "";
-  if(p != local_rpath) {
-    sub_dir = p.substr(local_rpath.size());
-  } else {
-  //  std::ofstream ofile(markf);
-  }
+  if(!fs::exists(markf))
+    std::ofstream ofile(markf);
+
   if(!fs::exists(p)) {
     fs::create_directory(p);
     Downloads(p);
+    std::ofstream ofile(markf);
+    return;
+  }
+
+  if(p != local_rpath) {
+    sub_dir = p.substr(local_rpath.size());
   }
 
   JsonEntry::list remote_flist = FileInfo(sub_dir);
@@ -193,6 +194,18 @@ void FileTrans::Syn(const std::string& p) {
       Syn(local_path);
     } else {
       LocalUpdate(*iter,remote_flist);
+    }
+  }
+  if(!remote_flist.empty()){
+    int op_flag;
+    auto mtime = fs::last_write_time(markf);
+    for(auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
+      std::string remote_path = ParseFileName(*iter);
+      if(mtime < ParseFilemTime(*iter))
+        op_flag = KDownloads;
+      else
+        op_flag = KDelete;
+      SynOperation(op_flag,remote_path);
     }
   }
 }
