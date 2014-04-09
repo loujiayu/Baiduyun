@@ -43,6 +43,7 @@ class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
 
 std::string  MD5(std::streambuf *file);
 bool IsDir(const JsonEntry& jobj);
+void RmDir(const std::string& path);
 std::string ParseFileName(const JsonEntry& jobj);
 unsigned int ParseFilemTime(const JsonEntry& json);
 std::string FileFromPath(const std::string& path);

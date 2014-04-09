@@ -168,6 +168,8 @@ void FileTrans::DeleteFile(const std::string& path) {
 }
 
 void FileTrans::Syn(const std::string& p) {
+  using namespace std::placeholders;
+  int op_flag;
   std::string sub_dir = "";
   if(!fs::exists(markf))
     std::ofstream ofile(markf);
@@ -187,10 +189,23 @@ void FileTrans::Syn(const std::string& p) {
   std::forward_list<JsonEntry> local_flist;
   copy(DirIter(p),DirIter(),front_inserter(local_flist));
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
-    bool isdir = fs::is_directory(ParseFileName(*iter));
+    std::string path = ParseFileName(*iter);
+    bool isdir = fs::is_directory(path);
     if(isdir) {
-      std::string local_path = p + '/' +
-                            FileFromPath(ParseFileName(*iter));
+      auto file = find_if(remote_flist.begin(),remote_flist.end(),std::bind(IsExists,path,_1));
+      if(file == remote_flist.end()) {
+        auto mtime = fs::last_write_time(markf);
+        auto ptime = fs::last_write_time(path);
+        if(mtime <= ptime) {
+          op_flag = KUploads;
+          SynOperation(op_flag,path);
+        }
+        else {
+          RmDir(path);
+          continue;
+        }
+      }
+      std::string local_path = p + '/' + FileFromPath(path);
       Syn(local_path);
     } else {
       LocalUpdate(*iter,remote_flist);

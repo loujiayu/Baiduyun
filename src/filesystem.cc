@@ -3,7 +3,7 @@
  * This file is released under the MIT License
  * http://opensource.org/licenses/MIT
  */
-
+#include <unistd.h>
 #include <openssl/evp.h>
 #include <iostream>
 #include <sstream>
@@ -67,6 +67,27 @@ unsigned int ParseFilemTime(const JsonEntry& json) {
 std::string FileFromPath(const std::string& path) {
   auto found = path.find_last_of("/\\");
   return path.substr(found + 1);
+}
+
+void RmDir(const std::string& path) {
+  std::forward_list<JsonEntry> flist;
+  copy(DirIter(path),DirIter(),front_inserter(flist));
+  for (auto iter = flist.begin();iter != flist.end();++iter) {
+    std::string path_name = ParseFileName(*iter);
+    if(fs::is_directory(path_name)) {
+      if(fs::is_empty(path_name)) {
+        rmdir(path_name.c_str());
+      } else {
+        RmDir(path_name);
+      }
+      if(fs::exists(path_name)&&fs::is_empty(path_name))
+        rmdir(path_name.c_str());
+    } else {
+      fs::remove(path_name);
+    }
+  }
+  if(fs::exists(path)&&fs::is_empty(path))
+        rmdir(path.c_str());
 }
 
 std::string MD5(std::streambuf *file)

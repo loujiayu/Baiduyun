@@ -4,7 +4,6 @@
  * http://opensource.org/licenses/MIT
  */
 
-#include <unistd.h>
 #include <assert.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -15,6 +14,8 @@
 #include "pcs.h"
 #include "jsonentry.h"
 #include "filetrans.h"
+#include "filesystem.h"
+
 namespace by {
 
 const std::string& ConfigFilename() {
@@ -72,13 +73,13 @@ int main(int argc, char *argv[]) {
     }
   }
   FileTrans ft(config["access_token"].Value<std::string>());
-  std::string p = fs::current_path().string() + "/Baidu_Yun";
-  std::string file = p + "/asd";
+  //std::string p = fs::current_path().string() + "/Baidu_Yun";
+  std::string file = fs::current_path().string() + "/Debug";
   // ft.UploadFile(file);
   // ft.DeleteFile(file);
   // ft.FileInfo();
-  ft.Syn(p);
+  //ft.Syn(p);
   // ft.Downloads(p);
-
+  RmDir(file);
   return 0;
 }
