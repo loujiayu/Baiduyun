@@ -70,6 +70,8 @@ std::string FileFromPath(const std::string& path) {
 }
 
 void RmDir(const std::string& path) {
+  if(!fs::is_directory(path))
+    fs::remove(path);
   std::forward_list<JsonEntry> flist;
   copy(DirIter(path),DirIter(),front_inserter(flist));
   for (auto iter = flist.begin();iter != flist.end();++iter) {

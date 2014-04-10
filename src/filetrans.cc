@@ -84,7 +84,7 @@ void FileTrans::SynOperation(int flag,const std::string& path) {
       //   DeleteFile(path);
       // }
       // else
-      //   fs::remove(path);
+      //   RmDir(path);
       break;
     }
     case KUploads : {
@@ -194,17 +194,21 @@ void FileTrans::Syn(const std::string& p) {
     if(isdir) {
       auto file = find_if(remote_flist.begin(),remote_flist.end(),std::bind(IsExists,path,_1));
       if(file == remote_flist.end()) {
-        auto mtime = fs::last_write_time(markf);
-        auto ptime = fs::last_write_time(path);
-        if(mtime <= ptime) {
-          op_flag = KUploads;
-          SynOperation(op_flag,path);
-        }
-        else {
-          RmDir(path);
-          continue;
-        }
+        op_flag = LocalMtimeCmp(path);
+        SynOperation(op_flag,path);
+        // auto mtime = fs::last_write_time(markf);
+        // auto ptime = fs::last_write_time(path);
+        // if(mtime <= ptime) {
+        //   op_flag = KUploads;
+        //   SynOperation(op_flag,path);
+        // }
+        // else {
+        //   RmDir(path);
+        //   continue;
+        // }
       }
+      if(op_flag == KDelete)
+        continue;
       std::string local_path = p + '/' + FileFromPath(path);
       Syn(local_path);
     } else {
@@ -213,16 +217,40 @@ void FileTrans::Syn(const std::string& p) {
   }
   if(!remote_flist.empty()){
     int op_flag;
-    auto mtime = fs::last_write_time(markf);
+    //auto mtime = fs::last_write_time(markf);
     for(auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
-      std::string remote_path = ParseFileName(*iter);
-      if(mtime < ParseFilemTime(*iter))
-        op_flag = KDownloads;
-      else
-        op_flag = KDelete;
+       std::string remote_path = ParseFileName(*iter);
+      // if(mtime < ParseFilemTime(*iter))
+      //   op_flag = KDownloads;
+      // else
+      //   op_flag = KDelete;
+      op_flag = RemoteMtimeCmp(*iter);
       SynOperation(op_flag,remote_path);
     }
   }
+}
+
+int FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
+  int op_flag;
+  auto mtime = fs::last_write_time(markf);
+  auto ptime = ParseFilemTime(json);
+  if(mtime < ParseFilemTime(json))
+    op_flag = KDownloads;
+  else
+    op_flag = KDelete;
+  return op_flag;
+}
+
+int FileTrans::LocalMtimeCmp(const std::string& path) {
+  int op_flag;
+  auto mtime = fs::last_write_time(markf);
+  auto ptime = fs::last_write_time(path);
+  if(mtime <= ptime) {
+    op_flag = KUploads;
+  } else {
+    op_flag = KDelete;
+  }
+  return op_flag;
 }
 
 void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
@@ -232,14 +260,15 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
   int op_flag;
   auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,path,_1));
   if(file == flist.end()) {
-    auto mtime = fs::last_write_time(markf);
-    auto ptime = fs::last_write_time(path);
-    if(mtime <= ptime) {
-      op_flag = KUploads;
-    }
-    else {
-      op_flag = KDelete;
-    }
+    op_flag = LocalMtimeCmp(path);
+    // auto mtime = fs::last_write_time(markf);
+    // auto ptime = fs::last_write_time(path);
+    // if(mtime <= ptime) {
+    //   op_flag = KUploads;
+    // }
+    // else {
+    //   op_flag = KDelete;
+    // }
   } else {
     std::ifstream ifile(path.c_str(), std::ios::binary | std::ios::out);
     std::string md5 = MD5(ifile.rdbuf());
@@ -259,5 +288,6 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
   }
   SynOperation(op_flag,path);
 }
+
 
 }  // namespace by
