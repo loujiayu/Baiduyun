@@ -27,11 +27,11 @@ class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
                                 jstring(mit.jstring) {}
   DirIter& operator++();
   DirIter operator++(int);
-  JsonEntry operator*();
-  bool operator!=(const DirIter& rhs) {
+  JsonEntry operator*() const { return JsonEntry::Parse(jstring) };
+  bool operator!=(const DirIter& rhs) const {
     return filesystem_iter != rhs.filesystem_iter;
   }
-  bool operator==(const DirIter& rhs) {
+  bool operator==(const DirIter& rhs) const {
     return filesystem_iter == rhs.filesystem_iter;
   }
   void UpdatePara();

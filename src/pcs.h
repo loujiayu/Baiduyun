@@ -20,7 +20,7 @@ class Pcs {
 
   static std::string AuthURL(const std::string&  client_id);
 
-  void  Auth(std::string auth_key);
+  void  Auth(const std::string auth_key);
 
   std::string access_token() const { return access_token_; }
 

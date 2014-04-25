@@ -196,16 +196,6 @@ void FileTrans::Syn(const std::string& p) {
       if(file == remote_flist.end()) {
         op_flag = LocalMtimeCmp(path);
         SynOperation(op_flag,path);
-        // auto mtime = fs::last_write_time(markf);
-        // auto ptime = fs::last_write_time(path);
-        // if(mtime <= ptime) {
-        //   op_flag = KUploads;
-        //   SynOperation(op_flag,path);
-        // }
-        // else {
-        //   RmDir(path);
-        //   continue;
-        // }
       }
       if(op_flag == KDelete)
         continue;
@@ -217,13 +207,8 @@ void FileTrans::Syn(const std::string& p) {
   }
   if(!remote_flist.empty()){
     int op_flag;
-    //auto mtime = fs::last_write_time(markf);
     for(auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
        std::string remote_path = ParseFileName(*iter);
-      // if(mtime < ParseFilemTime(*iter))
-      //   op_flag = KDownloads;
-      // else
-      //   op_flag = KDelete;
       op_flag = RemoteMtimeCmp(*iter);
       SynOperation(op_flag,remote_path);
     }
@@ -261,14 +246,6 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
   auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,path,_1));
   if(file == flist.end()) {
     op_flag = LocalMtimeCmp(path);
-    // auto mtime = fs::last_write_time(markf);
-    // auto ptime = fs::last_write_time(path);
-    // if(mtime <= ptime) {
-    //   op_flag = KUploads;
-    // }
-    // else {
-    //   op_flag = KDelete;
-    // }
   } else {
     std::ifstream ifile(path.c_str(), std::ios::binary | std::ios::out);
     std::string md5 = MD5(ifile.rdbuf());
@@ -288,6 +265,5 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
   }
   SynOperation(op_flag,path);
 }
-
 
 }  // namespace by

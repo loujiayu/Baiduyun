@@ -18,7 +18,7 @@ namespace by {
     client_id_(client_id),
     client_secret_(client_secret) {}
 
-  void Pcs::Auth(std::string auth_key) {
+  void Pcs::Auth(const std::string auth_key) {
     std::string post = "grant_type=authorization_code"
             "&code=" + auth_key +
             "&client_id=dOiFFnAqiGhzpsT19ijBqpaM"

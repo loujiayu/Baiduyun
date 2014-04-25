@@ -47,10 +47,6 @@ DirIter DirIter::operator++(int) {
   return tmp;
 }
 
-JsonEntry DirIter::operator*() {
-  return JsonEntry::Parse(jstring);
-}
-
 bool IsDir(const JsonEntry& json) {
   return json["isdir"].Value<unsigned int>();
 }

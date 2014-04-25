@@ -15,7 +15,6 @@
 
 namespace by {
 
-//namespace fs = boost::filesystem;
 class JsonEntry;
 typedef std::forward_list<JsonEntry> list;
 
