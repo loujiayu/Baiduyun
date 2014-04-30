@@ -10,10 +10,13 @@
 #include <stdlib.h>
 #include <string>
 #include <boost/filesystem.hpp>
+#include <forward_list>
 
 #include "macro.h"
 
 namespace by {
+
+std::string ExtractPath(const std::string& p);
 
 class JsonEntry;
 typedef std::forward_list<JsonEntry> list;

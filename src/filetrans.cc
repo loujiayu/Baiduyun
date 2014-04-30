@@ -217,8 +217,7 @@ void FileTrans::Syn(const std::string& p) {
 
 int FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
   int op_flag;
-  auto mtime = fs::last_write_time(markf);
-  auto ptime = ParseFilemTime(json);
+  unsigned int mtime = fs::last_write_time(markf);
   if(mtime < ParseFilemTime(json))
     op_flag = KDownloads;
   else
@@ -252,7 +251,7 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
     auto remote_file = find_if(flist.begin(),flist.end(),std::bind(IsMd5Match,path,md5,_1));
     if(remote_file == flist.end()) {
       auto remote_time = (*file)["mtime"].Value<unsigned int>();
-      auto local_time = fs::last_write_time(path);
+      unsigned int local_time = fs::last_write_time(path);
       if(remote_time < local_time) {
         op_flag = KUploads;
       } else {
