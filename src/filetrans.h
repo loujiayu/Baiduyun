@@ -16,9 +16,12 @@
 
 namespace by {
 
-std::string ExtractPath(const std::string& p);
-
 class JsonEntry;
+
+std::string ExtractPath(const std::string& p);
+bool IsExists(const std::string& path,const JsonEntry& jobj);
+bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& jobj);
+
 typedef std::forward_list<JsonEntry> list;
 
 enum FileOperation {KDownloads=1,KDelete,KUploads,KPass};

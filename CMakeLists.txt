@@ -42,10 +42,8 @@ if (test)
 
   add_executable(tests src/filetrans_test.cc)
 
-  # Standard linking to gtest stuff.
   target_link_libraries(tests gtest gtest_main)
 
-  # Extra linking for the project.
   target_link_libraries(tests baiduyun_lib)
 
   add_test(NAME unit_tset COMMAND tests)

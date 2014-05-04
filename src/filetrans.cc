@@ -33,22 +33,34 @@ std::string ExtractPath(const std::string& p) {
   else
     return p;
   std::size_t found = path.find_first_of("/\\");
+  std::size_t pos;
   while (found!=std::string::npos) {
-    path[found] = '/';
-    found = path.find_first_of("/\\",found+1);
+    pos = path.find_first_of("/\\",found+1);
+    if(pos > path.size())
+      break;
+    if(pos - found != 1) {
+      path[found] = '/';
+    } else {
+      path.erase(path.begin()+pos);
+      continue;
+    }
+    found  = pos;
   }
+  found = path.find_last_of("/\\");
+  if(found == path.size()-1)
+    path.erase(path.begin()+found);
   return path;
 }
 
 bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& jobj) {
   std::string rmd5 = jobj["md5"].Value<std::string>();
-  if(md5==rmd5)) {
+  if(md5!=rmd5) {
     return false;
   } else {
     std::string rpath = jobj["path"].Value<std::string>();
     std::string p1 = ExtractPath(path);
     std::string p2 = ExtractPath(rpath);
-    if(p1 == p2)
+    if(p1 != p2)
       return false;
     else
       return true;
