@@ -42,13 +42,13 @@ std::string ExtractPath(const std::string& p) {
 
 bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& jobj) {
   std::string rmd5 = jobj["md5"].Value<std::string>();
-  if(md5.compare(rmd5)) {
+  if(md5==rmd5)) {
     return false;
   } else {
     std::string rpath = jobj["path"].Value<std::string>();
     std::string p1 = ExtractPath(path);
     std::string p2 = ExtractPath(rpath);
-    if(p1.compare(p2))
+    if(p1 == p2)
       return false;
     else
       return true;
@@ -60,11 +60,10 @@ bool IsExists(const std::string& path,const JsonEntry& jobj) {
   std::string p1 = ExtractPath(path);
   std::string p2 = ExtractPath(rpath);
   //std::cout << p1 << std::endl << p2 << std::endl;
-  if(p2 == p1) {
+  if(p2 == p1)
     return true;
-  } else {
+  else
     return false;
-  }
 }
 
 void FileTrans::SynOperation(int flag,const std::string& path) {
