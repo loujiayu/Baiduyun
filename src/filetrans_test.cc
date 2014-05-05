@@ -1,22 +1,27 @@
 #include <gtest/gtest.h>
+#include <boost/filesystem.hpp>
 
 #include "filetrans.h"
 #include "jsonentry.h"
+
+namespace fs = boost::filesystem;
 
 namespace by {
 
 TEST(ExtractPathTest,ExtractPath) {
   std::string t1 = ExtractPath("/apps/ldrive\\mytest//baidu");
-  std::string t2 = ExtractPath("/apps/ldrive//\\mytest/\\baidu");
+  std::string t2 = ExtractPath("/apps/ldrive//\\mytest\\baidu");
   std::string t3 = ExtractPath("/apps/ldrive//\\mytest/\\baidu\\//\\");
-  EXPECT_STREQ("/mytest/baidu",t1.c_str());
-  EXPECT_STREQ("/mytest/baidu",t2.c_str());
-  EXPECT_STREQ("/mytest/baidu",t3.c_str());
+  std::string t4 = ExtractPath(fs::current_path().string() + "/Baidu_Yun" +"/mytest\\baidu");
+  EXPECT_STREQ("mytest/baidu",t1.c_str());
+  EXPECT_STREQ("mytest/baidu",t2.c_str());
+  EXPECT_STREQ("mytest/baidu",t3.c_str());
+  EXPECT_STREQ("mytest/baidu",t4.c_str());
 }
 
 TEST(IsExistsTest,IsExists) {
   JsonEntry p;
-  p.Add("path",JsonEntry("/home/tmp"));
+  p.Add("path",JsonEntry("\\home/tmp"));
   EXPECT_TRUE(IsExists("/home/tmp",p));
   EXPECT_FALSE(IsExists("/home/WRONG",p));
 }

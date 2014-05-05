@@ -30,21 +30,20 @@ std::string ExtractPath(const std::string& p) {
     path = p.substr(remote_rpath.size());
   else if(!path.compare(0,local_rpath.size(),local_rpath))
     path =  p.substr(local_rpath.size());
-  else
-    return p;
-  std::size_t found = path.find_first_of("/\\");
+
+  std::size_t found = 0;
   std::size_t pos;
   while (found!=std::string::npos) {
-    pos = path.find_first_of("/\\",found+1);
+    pos = path.find_first_of("/\\",found);
     if(pos > path.size())
       break;
-    if(pos - found != 1) {
-      path[found] = '/';
+    if(pos - found != 0) {
+      path[pos] = '/';
     } else {
       path.erase(path.begin()+pos);
       continue;
     }
-    found  = pos;
+    found  = pos + 1;
   }
   found = path.find_last_of("/\\");
   if(found == path.size()-1)
@@ -69,9 +68,10 @@ bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& 
 
 bool IsExists(const std::string& path,const JsonEntry& jobj) {
   std::string rpath = jobj["path"].Value<std::string>();
+  //std::cout << path << " " << rpath << std::endl;
   std::string p1 = ExtractPath(path);
   std::string p2 = ExtractPath(rpath);
-  //std::cout << p1 << std::endl << p2 << std::endl;
+  //std::cout << p1 << " " << p2 << std::endl;
   if(p2 == p1)
     return true;
   else
@@ -164,7 +164,7 @@ void FileTrans::UploadFile(const std::string& path) {
   std::string post = post_url +
                      "?method=upload"
                      "&access_token=" + access_token_ +
-                     "&path="         + remote_rpath  +remote_path;
+                     "&path="         + remote_rpath  + '/' + remote_path;
   std::cout << Put(post, file_contents);
 }
 
@@ -173,7 +173,7 @@ void FileTrans::DeleteFile(const std::string& path) {
   std::string post =  delete_url +
                      "?method=delete"
                      "&access_token=" + access_token_ +
-                     "&path="         + remote_rpath + remote_path;
+                     "&path="         + remote_rpath + '/' +remote_path;
                      std::cout <<post;
   std::cout << HttpGet(post);
 }
@@ -201,6 +201,7 @@ void FileTrans::Syn(const std::string& p) {
   copy(DirIter(p),DirIter(),front_inserter(local_flist));
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
     std::string path = ParseFileName(*iter);
+   // std::cout << path << std::endl;
     bool isdir = fs::is_directory(path);
     if(isdir) {
       auto file = find_if(remote_flist.begin(),remote_flist.end(),std::bind(IsExists,path,_1));
@@ -210,6 +211,7 @@ void FileTrans::Syn(const std::string& p) {
       }
       if(op_flag == KDelete)
         continue;
+      remote_flist.remove(*file);
       std::string local_path = p + '/' + FileFromPath(path);
       Syn(local_path);
     } else {
@@ -219,7 +221,7 @@ void FileTrans::Syn(const std::string& p) {
   if(!remote_flist.empty()){
     int op_flag;
     for(auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
-       std::string remote_path = ParseFileName(*iter);
+      std::string remote_path = ParseFileName(*iter);
       op_flag = RemoteMtimeCmp(*iter);
       SynOperation(op_flag,remote_path);
     }
@@ -253,6 +255,7 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
 
   std::string path = jobj["path"].Value<std::string>();
   int op_flag;
+  //std::cout << path << std::endl;
   auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,path,_1));
   if(file == flist.end()) {
     op_flag = LocalMtimeCmp(path);

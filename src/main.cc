@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
   //std::string file = fs::current_path().string() + "/Debug";
   // ft.UploadFile(file);
   // ft.DeleteFile(file);
-  // ft.FileInfo();
+  //ft.FileInfo();
   ft.Syn(p);
   // ft.Downloads(p);
   //RmDir(file);
