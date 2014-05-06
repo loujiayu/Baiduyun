@@ -15,32 +15,7 @@
 #include "jsonentry.h"
 #include "filetrans.h"
 #include "filesystem.h"
-
-namespace by {
-
-const std::string& ConfigFilename() {
-  static const std::string filename =
-    std::string(::getenv("HOME")) + "/.baiduyun";
-  return filename;
-}
-
-JsonEntry ReadConfig() {
-  std::ifstream ifile(ConfigFilename().c_str());
-  if ( ifile ) {
-    std::string cfg_str(
-      (std::istreambuf_iterator<char>(ifile)),
-      (std::istreambuf_iterator<char>()));
-    return JsonEntry::Parse(cfg_str);
-  } else {
-    return JsonEntry();
-  }
-}
-
-void SaveConfig(const JsonEntry& config) {
-  std::ofstream ofile(ConfigFilename().c_str());
-  ofile << config;
-}
-}  // namespace by
+#include "config.h"
 
 int main(int argc, char *argv[]) {
   using namespace by;
@@ -72,14 +47,15 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  FileTrans ft(config["access_token"].Value<std::string>());
-  std::string p = fs::current_path().string() + "/Baidu_Yun";
-  //std::string file = fs::current_path().string() + "/Debug";
-  // ft.UploadFile(file);
-  // ft.DeleteFile(file);
-  //ft.FileInfo();
-  ft.Syn(p);
-  // ft.Downloads(p);
-  //RmDir(file);
+  std::cout << config["acces_token"].Value<std::string>();
+  // FileTrans ft(config["access_token"].Value<std::string>());
+  // std::string p = fs::current_path().string() + "/Baidu_Yun";
+  // //std::string file = fs::current_path().string() + "/Debug";
+  // // ft.UploadFile(file);
+  // // ft.DeleteFile(file);
+  // ft.FileInfo();
+  // ft.Syn(p);
+  // // ft.Downloads(p);
+  // //RmDir(file);
   return 0;
 }

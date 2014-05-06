@@ -3,10 +3,13 @@
 
 #include "filetrans.h"
 #include "jsonentry.h"
+#include "config.h"
 
 namespace fs = boost::filesystem;
 
 namespace by {
+
+const std::string test_filename = "mytest.txt";
 
 TEST(ExtractPathTest,ExtractPath) {
   std::string t1 = ExtractPath("/apps/ldrive\\mytest//baidu");
@@ -32,6 +35,21 @@ TEST(IsMd5MatchTest,IsMd5Match) {
   p.Add("md5",JsonEntry("123456"));
   EXPECT_TRUE(IsMd5Match("/home/tmp","123456",p));
   EXPECT_FALSE(IsMd5Match("/home/tmp","wrong number",p));
+}
+
+TEST(FileTrans,RemoteOperation) {
+  JsonEntry config = ReadConfig();
+  FileTrans ft(config["access_token"].Value<std::string>());
+
+  std::ofstream ofile(test_filename);
+  if(ofile.is_open()) {
+    ofile << "haha";
+    ofile.close();
+  } else {
+    printf("Error opening file");
+  }
+  ft.UploadFile("mytest.txt");
+
 }
 
 }

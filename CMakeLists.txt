@@ -16,6 +16,7 @@ add_library(baiduyun_lib
   src/Http.cc
   src/filetrans.cc
   src/filesystem.cc
+  src/config.cc
 )
 
 target_link_libraries (baiduyun_lib

@@ -147,7 +147,7 @@ std::string Put(const std::string& url,const std::string& data,const Headers& hd
   curl_easy_setopt(curl, CURLOPT_READFUNCTION,  &ReadCallback ) ;
   curl_easy_setopt(curl, CURLOPT_READDATA ,   &put_data ) ;
   curl_easy_setopt(curl, CURLOPT_INFILESIZE,    put_data.size() ) ;
-  curl_easy_setopt(curl, CURLOPT_VERBOSE,     1 ) ;
+  curl_easy_setopt(curl, CURLOPT_VERBOSE,     0 ) ;
   curl_easy_perform(curl);
   return resp;
 }
@@ -160,9 +160,6 @@ std::string Customizing(
   CURL *curl = InitCurl(url, &resp, hdr);
   std::string post_data = data;
   curl_easy_setopt(curl, CURLOPT_POST, 1);
-  //curl_easy_setopt(curl,CURLOPT_CUSTOMREQUEST,"DELETE");
-  //curl_easy_setopt(curl, CURLOPT_POSTFIELDS,    &post_data[0]);
-  // curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.size());
   curl_easy_setopt(curl, CURLOPT_VERBOSE,     1 ) ;
   DoCurl(curl);
   return resp;

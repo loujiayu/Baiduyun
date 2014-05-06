@@ -118,28 +118,25 @@ JsonEntry::list FileTrans::FileInfo(const std::string& sub_dir) {
                     "&path="         + remote_rpath  + sub_dir;
 
   JsonEntry resp = JsonEntry::Parse(HttpGet(filelist_url));
-  //std::cout << resp <<std::endl;
+  std::cout << resp <<std::endl;
   JsonEntry::list filelist = resp["list"].Value<JsonEntry::list>();
   return filelist;
 }
 
 void FileTrans::Downloads(const std::string& p) {
   std::string sub_dir = "";
-  if(p != local_rpath) {
+  if(p != local_rpath)
     sub_dir = p.substr(local_rpath.size());
-  }
  //std::cout << sub_dir << std::endl;
   if(!fs::exists(p))
     fs::create_directory(p);
   JsonEntry::list remote_flist = FileInfo(sub_dir);
   for (auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
     std::string local_path = p + '/' + FileFromPath(ParseFileName(*iter));
-    if (IsDir(*iter)) {
+    if (IsDir(*iter))
       Downloads(local_path);
-    }
-    else {
+    else
       DownloadFile(local_path);
-    }
   }
 }
 
@@ -154,7 +151,7 @@ void FileTrans::DownloadFile(const std::string& path) {
   HttpGetFile(url, &mfile);
 }
 
-void FileTrans::UploadFile(const std::string& path) {
+bool FileTrans::UploadFile(const std::string& path) {
   std::ifstream ifile(path.c_str());
   std::string file_contents(
       (std::istreambuf_iterator<char>(ifile)),
@@ -165,7 +162,10 @@ void FileTrans::UploadFile(const std::string& path) {
                      "?method=upload"
                      "&access_token=" + access_token_ +
                      "&path="         + remote_rpath  + '/' + remote_path;
-  std::cout << Put(post, file_contents);
+  JsonEntry resp = JsonEntry::Parse(Put(post, file_contents));
+  //if(resp.getstring().empty())
+  auto ss = resp["error_msg"].Value<std::string>();
+  printf("%s",ss.c_str());
 }
 
 void FileTrans::DeleteFile(const std::string& path) {
@@ -179,6 +179,10 @@ void FileTrans::DeleteFile(const std::string& path) {
 }
 
 void FileTrans::Syn(const std::string& p) {
+  if(p.empty()) {
+    printf("Please input path name");
+    return;
+  }
   using namespace std::placeholders;
   int op_flag;
   std::string sub_dir = "";
@@ -186,15 +190,17 @@ void FileTrans::Syn(const std::string& p) {
     std::ofstream ofile(markf);
 
   if(!fs::exists(p)) {
-    fs::create_directory(p);
+    if(fs::create_directory(p)){
+      printf("Pathname invalid");
+      return;
+    }
     Downloads(p);
     std::ofstream ofile(markf);
     return;
   }
 
-  if(p != local_rpath) {
+  if(p != local_rpath)
     sub_dir = p.substr(local_rpath.size());
-  }
 
   JsonEntry::list remote_flist = FileInfo(sub_dir);
   std::forward_list<JsonEntry> local_flist;
@@ -242,11 +248,10 @@ int FileTrans::LocalMtimeCmp(const std::string& path) {
   int op_flag;
   auto mtime = fs::last_write_time(markf);
   auto ptime = fs::last_write_time(path);
-  if(mtime <= ptime) {
+  if(mtime <= ptime)
     op_flag = KUploads;
-  } else {
+  else
     op_flag = KDelete;
-  }
   return op_flag;
 }
 
@@ -266,11 +271,10 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
     if(remote_file == flist.end()) {
       auto remote_time = (*file)["mtime"].Value<unsigned int>();
       unsigned int local_time = fs::last_write_time(path);
-      if(remote_time < local_time) {
+      if(remote_time < local_time)
         op_flag = KUploads;
-      } else {
+      else
         op_flag = KDownloads;
-      }
     } else {
       op_flag = KPass;
     }
