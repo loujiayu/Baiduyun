@@ -24,7 +24,7 @@ bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& 
 
 typedef std::forward_list<JsonEntry> list;
 
-enum FileOperation {KDownloads=1,KDelete,KUploads,KPass};
+enum FileOperation {kDownloads=1,kDelete,kUploads,kPass};
 
 class FileTrans {
  public:
@@ -35,7 +35,7 @@ class FileTrans {
   void Syn(const std::string& path);
   void SynOperation(int flag,const std::string& path);
   void LocalUpdate(const JsonEntry& jobj,list& flist);
-  bool UploadFile(const std::string& path);
+  void UploadFile(const std::string& path);
   void DeleteFile(const std::string& path);
   int LocalMtimeCmp(const std::string& path);
   int RemoteMtimeCmp(const JsonEntry& json);

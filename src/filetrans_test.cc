@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2014 loujiayu
+ * This file is released under the MIT License
+ * http://opensource.org/licenses/MIT
+ */
+
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 
@@ -9,7 +15,7 @@ namespace fs = boost::filesystem;
 
 namespace by {
 
-const std::string test_filename = "mytest.txt";
+const std::string test_filename = "mytest781239safjk";
 
 TEST(ExtractPathTest,ExtractPath) {
   std::string t1 = ExtractPath("/apps/ldrive\\mytest//baidu");
@@ -38,6 +44,7 @@ TEST(IsMd5MatchTest,IsMd5Match) {
 }
 
 TEST(FileTrans,RemoteOperation) {
+  using namespace std::placeholders;
   JsonEntry config = ReadConfig();
   FileTrans ft(config["access_token"].Value<std::string>());
 
@@ -48,8 +55,25 @@ TEST(FileTrans,RemoteOperation) {
   } else {
     printf("Error opening file");
   }
-  ft.UploadFile("mytest.txt");
+  ft.UploadFile(test_filename);
+  JsonEntry::list flist = ft.FileInfo("");
+  auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,test_filename,_1));
+  EXPECT_TRUE(file != flist.end());
 
+  if(!fs::remove(test_filename)) {
+    printf("%s does not exist.",test_filename.c_str());
+  }
+  ft.DownloadFile(test_filename);
+  EXPECT_TRUE(fs::exists("Baidu_Yun/" + test_filename));
+
+  ft.DeleteFile(test_filename);
+  flist = ft.FileInfo("");
+  file = find_if(flist.begin(),flist.end(),std::bind(IsExists,test_filename,_1));
+  EXPECT_TRUE(file == flist.end());
+
+  if(!fs::remove("Baidu_Yun/" + test_filename)) {
+    printf("%s does not exist ./Baidu_Yun/.",test_filename.c_str());
+  }
 }
 
 }

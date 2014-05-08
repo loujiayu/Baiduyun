@@ -17,19 +17,19 @@
 
 namespace by {
 
-const std::string token_url     = "https://d.pcs.baidu.com/rest/2.0/pcs/file";
-const std::string post_url      = "https://c.pcs.baidu.com/rest/2.0/pcs/file";
-const std::string delete_url    = "https://pcs.baidu.com/rest/2.0/pcs/file";
+const std::string kDPcsURL     = "https://d.pcs.baidu.com/rest/2.0/pcs/file";
+const std::string kCPcsURL     = "https://c.pcs.baidu.com/rest/2.0/pcs/file";
+const std::string kPcsURL      = "https://pcs.baidu.com/rest/2.0/pcs/file";
 
-const std::string remote_rpath  = "/apps/ldrive";
-const std::string local_rpath   = fs::current_path().string() + "/Baidu_Yun";
+const std::string kRemoteRoot  = "/apps/ldrive";
+const std::string kLocalRoot   = fs::current_path().string() + "/Baidu_Yun";
 
 std::string ExtractPath(const std::string& p) {
   std::string path = p;
-  if(!path.compare(0,remote_rpath.size(),remote_rpath))
-    path = p.substr(remote_rpath.size());
-  else if(!path.compare(0,local_rpath.size(),local_rpath))
-    path =  p.substr(local_rpath.size());
+  if(!path.compare(0,kRemoteRoot.size(),kRemoteRoot))
+    path = p.substr(kRemoteRoot.size());
+  else if(!path.compare(0,kLocalRoot.size(),kLocalRoot))
+    path =  p.substr(kLocalRoot.size());
 
   std::size_t found = 0;
   std::size_t pos;
@@ -68,10 +68,8 @@ bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& 
 
 bool IsExists(const std::string& path,const JsonEntry& jobj) {
   std::string rpath = jobj["path"].Value<std::string>();
-  //std::cout << path << " " << rpath << std::endl;
   std::string p1 = ExtractPath(path);
   std::string p2 = ExtractPath(rpath);
-  //std::cout << p1 << " " << p2 << std::endl;
   if(p2 == p1)
     return true;
   else
@@ -81,26 +79,28 @@ bool IsExists(const std::string& path,const JsonEntry& jobj) {
 void FileTrans::SynOperation(int flag,const std::string& path) {
   std::cout << path <<std::endl;
   switch(flag) {
-    case KPass :
-      std::cout << "KPass" <<std::endl;
+    case kPass :
+      std::cout << "Pass" <<std::endl;
       break;
-    case KDownloads : {
-      std::cout << "KDownloads" <<std::endl;
-     // DownloadFile(path);
-      break;
-    }
-    case KDelete : {
-      std::cout << "KDelete" <<std::endl;
-      // if(path.compare(0,remote_rpath.size(),remote_rpath)) {
-      //   DeleteFile(path);
-      // }
-      // else
-      //   RmDir(path);
+    case kDownloads : {
+      std::cout << "Downloads" <<std::endl;
+      DownloadFile(path);
       break;
     }
-    case KUploads : {
-      std::cout << "KUploads" <<std::endl;
-     // UploadFile(path);
+    case kDelete : {
+      if(!path.compare(0,kRemoteRoot.size(),kRemoteRoot)) {
+        std::cout << "remote Delete" <<std::endl;
+        DeleteFile(path);
+      }
+      else {
+        std::cout << "local Delete" <<std::endl;
+        RmDir(path);
+      }
+      break;
+    }
+    case kUploads : {
+      std::cout << "Uploads" <<std::endl;
+      UploadFile(path);
       break;
     }
     default: break;
@@ -109,25 +109,23 @@ void FileTrans::SynOperation(int flag,const std::string& path) {
 
 FileTrans::FileTrans(const std::string&  access_token) :
             access_token_(access_token) ,
-            markf(local_rpath + "/.baiduyun"){}
+            markf(kLocalRoot + "/.baiduyun"){}
 
 JsonEntry::list FileTrans::FileInfo(const std::string& sub_dir) {
-  std::string filelist_url = token_url +
-                    "?method=list"
+  std::string filelist_url = kDPcsURL      +
+                   "?method=list"
                     "&access_token=" + access_token_ +
-                    "&path="         + remote_rpath  + sub_dir;
+                    "&path="         + kRemoteRoot  + sub_dir;
 
   JsonEntry resp = JsonEntry::Parse(HttpGet(filelist_url));
-  std::cout << resp <<std::endl;
   JsonEntry::list filelist = resp["list"].Value<JsonEntry::list>();
   return filelist;
 }
 
 void FileTrans::Downloads(const std::string& p) {
   std::string sub_dir = "";
-  if(p != local_rpath)
-    sub_dir = p.substr(local_rpath.size());
- //std::cout << sub_dir << std::endl;
+  if(p != kLocalRoot)
+    sub_dir = p.substr(kLocalRoot.size());
   if(!fs::exists(p))
     fs::create_directory(p);
   JsonEntry::list remote_flist = FileInfo(sub_dir);
@@ -140,47 +138,48 @@ void FileTrans::Downloads(const std::string& p) {
   }
 }
 
-void FileTrans::DownloadFile(const std::string& path) {
-  std::string file = path.substr(local_rpath.size());
-  std::string url = token_url +
-                    "?method=download"
+void FileTrans::DownloadFile(const std::string& download_file) {
+  std::string path = download_file;
+  if(path.compare(0,kLocalRoot.size(),kLocalRoot)) {
+    path = kLocalRoot + '/' + path;
+
+  }
+
+  std::string file = path.substr(kLocalRoot.size());
+  std::string url = kDPcsURL      +
+                   "?method=download"
                     "&access_token=" + access_token_ +
-                    "&path="         + remote_rpath  +
+                    "&path="         + kRemoteRoot  +
                     "/"              + file;
   std::ofstream mfile(path, std::ios::out | std::ios::binary);
   HttpGetFile(url, &mfile);
 }
 
-bool FileTrans::UploadFile(const std::string& path) {
+void FileTrans::UploadFile(const std::string& path) {
   std::ifstream ifile(path.c_str());
   std::string file_contents(
       (std::istreambuf_iterator<char>(ifile)),
       (std::istreambuf_iterator<char>()));
   std::string remote_path  = ExtractPath(path);
-  std::cout << remote_path << std::endl;
-  std::string post = post_url +
+  std::string post = kCPcsURL +
                      "?method=upload"
                      "&access_token=" + access_token_ +
-                     "&path="         + remote_rpath  + '/' + remote_path;
-  JsonEntry resp = JsonEntry::Parse(Put(post, file_contents));
-  //if(resp.getstring().empty())
-  auto ss = resp["error_msg"].Value<std::string>();
-  printf("%s",ss.c_str());
+                     "&path="         + kRemoteRoot  + '/' + remote_path;
+  Put(post, file_contents);
 }
 
 void FileTrans::DeleteFile(const std::string& path) {
   std::string remote_path  = ExtractPath(path);
-  std::string post =  delete_url +
+  std::string post =  kPcsURL +
                      "?method=delete"
                      "&access_token=" + access_token_ +
-                     "&path="         + remote_rpath + '/' +remote_path;
-                     std::cout <<post;
-  std::cout << HttpGet(post);
+                     "&path="         + kRemoteRoot + '/' +remote_path;
+  HttpGet(post);
 }
 
 void FileTrans::Syn(const std::string& p) {
   if(p.empty()) {
-    printf("Please input path name");
+    printf("Please input path name.");
     return;
   }
   using namespace std::placeholders;
@@ -191,7 +190,7 @@ void FileTrans::Syn(const std::string& p) {
 
   if(!fs::exists(p)) {
     if(fs::create_directory(p)){
-      printf("Pathname invalid");
+      printf("Pathname invalid.");
       return;
     }
     Downloads(p);
@@ -199,15 +198,14 @@ void FileTrans::Syn(const std::string& p) {
     return;
   }
 
-  if(p != local_rpath)
-    sub_dir = p.substr(local_rpath.size());
+  if(p != kLocalRoot)
+    sub_dir = p.substr(kLocalRoot.size());
 
   JsonEntry::list remote_flist = FileInfo(sub_dir);
   std::forward_list<JsonEntry> local_flist;
   copy(DirIter(p),DirIter(),front_inserter(local_flist));
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
     std::string path = ParseFileName(*iter);
-   // std::cout << path << std::endl;
     bool isdir = fs::is_directory(path);
     if(isdir) {
       auto file = find_if(remote_flist.begin(),remote_flist.end(),std::bind(IsExists,path,_1));
@@ -215,7 +213,7 @@ void FileTrans::Syn(const std::string& p) {
         op_flag = LocalMtimeCmp(path);
         SynOperation(op_flag,path);
       }
-      if(op_flag == KDelete)
+      if(op_flag == kDelete)
         continue;
       remote_flist.remove(*file);
       std::string local_path = p + '/' + FileFromPath(path);
@@ -232,15 +230,16 @@ void FileTrans::Syn(const std::string& p) {
       SynOperation(op_flag,remote_path);
     }
   }
+  std::ofstream ofile(markf);
 }
 
 int FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
   int op_flag;
   unsigned int mtime = fs::last_write_time(markf);
   if(mtime < ParseFilemTime(json))
-    op_flag = KDownloads;
+    op_flag = kDownloads;
   else
-    op_flag = KDelete;
+    op_flag = kDelete;
   return op_flag;
 }
 
@@ -249,9 +248,9 @@ int FileTrans::LocalMtimeCmp(const std::string& path) {
   auto mtime = fs::last_write_time(markf);
   auto ptime = fs::last_write_time(path);
   if(mtime <= ptime)
-    op_flag = KUploads;
+    op_flag = kUploads;
   else
-    op_flag = KDelete;
+    op_flag = kDelete;
   return op_flag;
 }
 
@@ -260,7 +259,6 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
 
   std::string path = jobj["path"].Value<std::string>();
   int op_flag;
-  //std::cout << path << std::endl;
   auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,path,_1));
   if(file == flist.end()) {
     op_flag = LocalMtimeCmp(path);
@@ -272,11 +270,11 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
       auto remote_time = (*file)["mtime"].Value<unsigned int>();
       unsigned int local_time = fs::last_write_time(path);
       if(remote_time < local_time)
-        op_flag = KUploads;
+        op_flag = kUploads;
       else
-        op_flag = KDownloads;
+        op_flag = kDownloads;
     } else {
-      op_flag = KPass;
+      op_flag = kPass;
     }
     flist.remove(*file);
   }
