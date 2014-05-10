@@ -20,7 +20,8 @@ DirIter::DirIter() {
 
 DirIter::DirIter(const std::string& p) : path_(p) {
   filesystem_iter = fs::directory_iterator(path_);
-  UpdatePara();
+  if(filesystem_iter != fs::directory_iterator())
+    UpdatePara();
 }
 
 void DirIter::UpdatePara() {

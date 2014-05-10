@@ -3,7 +3,7 @@ project(baiduyun)
 cmake_minimum_required(VERSION 2.8)
 
 # Options. Turn on with 'cmake -Dmyvarname=ON'.
-option(test "Build all tests." OFF)
+option(test "Build all tests." ON)
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(CURL REQUIRED)

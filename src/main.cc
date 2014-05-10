@@ -17,14 +17,31 @@
 #include "filesystem.h"
 #include "config.h"
 
+ void ExitWithHelp() {
+  printf(
+    "Usage: baiduyun [option]\n"
+    "options:\n"
+    "-a authenicate: authenticate your account with access token\n"
+    "-d download: download files from /apps/ldrive\n"
+    "-u upload: upload files from ./Baidu_Yun\n"
+    "-s synchronise: detect files need to be downloaded or uploaded and do it\n"
+    "-h help: help message\n");
+  exit(-1);
+ }
+
 int main(int argc, char *argv[]) {
   using namespace by;
   JsonEntry config = ReadConfig();
   int c;
+  bool download = false,upload = false,syn = false;
   const std::string kClientID  = "dOiFFnAqiGhzpsT19ijBqpaM";
   const std::string kClientSecret  = "QVCr57iC3g8AjX5pRlkbSPIrivAtY1BE";
-  while ((c = getopt(argc, argv, "a")) != -1) {
+  while ((c = getopt(argc, argv, "duhs")) != -1) {
     switch (c) {
+      case 'h': {
+        ExitWithHelp();
+        break;
+      }
       case 'a': {
         std::cout
           << "-----------------------\n"
@@ -44,11 +61,35 @@ int main(int argc, char *argv[]) {
         assert(config["access_token"].Value<std::string>() ==
           baidu_oauth.access_token());
         SaveConfig(config);
+        break;
+      }
+      case 's': {
+        syn = true;
+        break;
+      }
+      case 'd': {
+        download = true;
+        break;
+      }
+      case 'u': {
+        upload = true;
+        break;
       }
     }
   }
-  FileTrans ft(config["access_token"].Value<std::string>());
+
+  std::string access_token;
+  try {
+    access_token = (config["access_token"].Value<std::string>());
+  }
+  catch(const std::runtime_error& error) {
+    fprintf (stderr,"The first time run baiduyun,please add option \"-a\" to authenticate your account");
+    return -1;
+  }
+  FileTrans ft(access_token);
   std::string p = fs::current_path().string() + "/Baidu_Yun";
   ft.Syn(p);
+  std::ofstream ofile(kMarkfile);
+  //ft.FileInfo("/as");
   return 0;
 }

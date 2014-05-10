@@ -17,12 +17,7 @@
 
 namespace by {
 
-const std::string kDPcsURL     = "https://d.pcs.baidu.com/rest/2.0/pcs/file";
-const std::string kCPcsURL     = "https://c.pcs.baidu.com/rest/2.0/pcs/file";
-const std::string kPcsURL      = "https://pcs.baidu.com/rest/2.0/pcs/file";
 
-const std::string kRemoteRoot  = "/apps/ldrive";
-const std::string kLocalRoot   = fs::current_path().string() + "/Baidu_Yun";
 
 std::string ExtractPath(const std::string& p) {
   std::string path = p;
@@ -77,29 +72,26 @@ bool IsExists(const std::string& path,const JsonEntry& jobj) {
 }
 
 void FileTrans::SynOperation(int flag,const std::string& path) {
-  std::cout << path <<std::endl;
+  printf("%s \n",path.c_str());
   switch(flag) {
     case kPass :
-      std::cout << "Pass" <<std::endl;
+      printf("pass\n");
       break;
     case kDownloads : {
-      std::cout << "Downloads" <<std::endl;
+      printf("download...");
       DownloadFile(path);
       break;
     }
     case kDelete : {
-      if(!path.compare(0,kRemoteRoot.size(),kRemoteRoot)) {
-        std::cout << "remote Delete" <<std::endl;
+      printf("deleting...");
+      if(!path.compare(0,kRemoteRoot.size(),kRemoteRoot))
         DeleteFile(path);
-      }
-      else {
-        std::cout << "local Delete" <<std::endl;
+      else
         RmDir(path);
-      }
       break;
     }
     case kUploads : {
-      std::cout << "Uploads" <<std::endl;
+      printf("uploading...");
       UploadFile(path);
       break;
     }
@@ -109,7 +101,7 @@ void FileTrans::SynOperation(int flag,const std::string& path) {
 
 FileTrans::FileTrans(const std::string&  access_token) :
             access_token_(access_token) ,
-            markf(kLocalRoot + "/.baiduyun"){}
+            markf(kMarkfile){}
 
 JsonEntry::list FileTrans::FileInfo(const std::string& sub_dir) {
   std::string filelist_url = kDPcsURL      +
@@ -129,29 +121,34 @@ void FileTrans::Downloads(const std::string& p) {
   if(!fs::exists(p))
     fs::create_directory(p);
   JsonEntry::list remote_flist = FileInfo(sub_dir);
+  if(remote_flist.empty()) {
+    printf("%s is empty.\n",p.c_str());
+    return;
+  }
   for (auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
-    std::string local_path = p + '/' + FileFromPath(ParseFileName(*iter));
-    if (IsDir(*iter))
+    if (IsDir(*iter)) {
+      std::string local_path = p + '/' + FileFromPath(ParseFileName(*iter));
       Downloads(local_path);
-    else
-      DownloadFile(local_path);
+    }
+    else {
+      DownloadFile(ParseFileName(*iter));
+    }
   }
 }
 
 void FileTrans::DownloadFile(const std::string& download_file) {
   std::string path = download_file;
-  if(path.compare(0,kLocalRoot.size(),kLocalRoot)) {
-    path = kLocalRoot + '/' + path;
-
+  if(path.compare(0,kRemoteRoot.size(),kRemoteRoot)) {
+    path = kRemoteRoot + '/' + path;
   }
-
-  std::string file = path.substr(kLocalRoot.size());
+  std::string file = path.substr(kRemoteRoot.size());
   std::string url = kDPcsURL      +
                    "?method=download"
                     "&access_token=" + access_token_ +
                     "&path="         + kRemoteRoot  +
                     "/"              + file;
-  std::ofstream mfile(path, std::ios::out | std::ios::binary);
+  std::string local_path = kLocalRoot + file;
+  std::ofstream mfile(local_path, std::ios::out | std::ios::binary);
   HttpGetFile(url, &mfile);
 }
 
@@ -185,16 +182,16 @@ void FileTrans::Syn(const std::string& p) {
   using namespace std::placeholders;
   int op_flag;
   std::string sub_dir = "";
-  if(!fs::exists(markf))
-    std::ofstream ofile(markf);
+  if(!fs::exists(kMarkfile))
+    std::ofstream ofile(kMarkfile);
 
   if(!fs::exists(p)) {
-    if(fs::create_directory(p)){
+    if(!fs::create_directory(p)){
       printf("Pathname invalid.");
       return;
     }
     Downloads(p);
-    std::ofstream ofile(markf);
+    std::ofstream ofile(kMarkfile);
     return;
   }
 
@@ -202,6 +199,10 @@ void FileTrans::Syn(const std::string& p) {
     sub_dir = p.substr(kLocalRoot.size());
 
   JsonEntry::list remote_flist = FileInfo(sub_dir);
+  // if(remote_flist.empty()) {
+  //   printf("%s is empty.\n",p.c_str());
+  //   return;
+  // }
   std::forward_list<JsonEntry> local_flist;
   copy(DirIter(p),DirIter(),front_inserter(local_flist));
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
@@ -230,12 +231,11 @@ void FileTrans::Syn(const std::string& p) {
       SynOperation(op_flag,remote_path);
     }
   }
-  std::ofstream ofile(markf);
 }
 
 int FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
   int op_flag;
-  unsigned int mtime = fs::last_write_time(markf);
+  unsigned int mtime = fs::last_write_time(kMarkfile);
   if(mtime < ParseFilemTime(json))
     op_flag = kDownloads;
   else
@@ -245,7 +245,7 @@ int FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
 
 int FileTrans::LocalMtimeCmp(const std::string& path) {
   int op_flag;
-  auto mtime = fs::last_write_time(markf);
+  auto mtime = fs::last_write_time(kMarkfile);
   auto ptime = fs::last_write_time(path);
   if(mtime <= ptime)
     op_flag = kUploads;

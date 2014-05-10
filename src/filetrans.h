@@ -16,6 +16,14 @@
 
 namespace by {
 
+const std::string kDPcsURL     = "https://d.pcs.baidu.com/rest/2.0/pcs/file";
+const std::string kCPcsURL     = "https://c.pcs.baidu.com/rest/2.0/pcs/file";
+const std::string kPcsURL      = "https://pcs.baidu.com/rest/2.0/pcs/file";
+
+const std::string kRemoteRoot  = "/apps/ldrive";
+const std::string kMarkfile    = boost::filesystem::current_path().string() + "/Baidu_Yun/.baiduyun";
+const std::string kLocalRoot   = boost::filesystem::current_path().string() + "/Baidu_Yun";
+
 class JsonEntry;
 
 std::string ExtractPath(const std::string& p);

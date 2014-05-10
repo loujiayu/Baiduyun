@@ -26,7 +26,9 @@ class JsonEntry {
 
   static JsonEntry Parse(const std::string& str);
   std::string getstring() const { return json_object_get_string(jobj_); }
+  int getlength() const { return json_object_array_length(jobj_); }
   void Add(const std::string& key, const JsonEntry& jsonentry);
+
 
   bool operator!=(const JsonEntry& rhs) const { return jobj_ != rhs.jobj_; }
   bool operator==(const JsonEntry& rhs) const { return jobj_ == rhs.jobj_; }
