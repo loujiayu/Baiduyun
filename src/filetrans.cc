@@ -152,6 +152,20 @@ void FileTrans::DownloadFile(const std::string& download_file) {
   HttpGetFile(url, &mfile);
 }
 
+void FileTrans::Uploads(const std::string& p) {
+  std::forward_list<JsonEntry> local_flist;
+  copy(DirIter(p),DirIter(),front_inserter(local_flist));
+  for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
+    std::string path = ParseFileName(*iter);
+    bool isdir = fs::is_directory(path);
+    if(isdir) {
+      Uploads(path);
+    } else {
+      UploadFile(path);
+    }
+  }
+}
+
 void FileTrans::UploadFile(const std::string& path) {
   std::ifstream ifile(path.c_str());
   std::string file_contents(
@@ -161,7 +175,8 @@ void FileTrans::UploadFile(const std::string& path) {
   std::string post = kCPcsURL +
                      "?method=upload"
                      "&access_token=" + access_token_ +
-                     "&path="         + kRemoteRoot  + '/' + remote_path;
+                     "&path="         + kRemoteRoot  + '/' + remote_path +
+                     "&ondup=overwrite";
   Put(post, file_contents);
 }
 
@@ -199,10 +214,6 @@ void FileTrans::Syn(const std::string& p) {
     sub_dir = p.substr(kLocalRoot.size());
 
   JsonEntry::list remote_flist = FileInfo(sub_dir);
-  // if(remote_flist.empty()) {
-  //   printf("%s is empty.\n",p.c_str());
-  //   return;
-  // }
   std::forward_list<JsonEntry> local_flist;
   copy(DirIter(p),DirIter(),front_inserter(local_flist));
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {

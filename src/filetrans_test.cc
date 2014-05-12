@@ -63,7 +63,7 @@ TEST(FileTrans,RemoteOperation) {
   if(!fs::remove(test_filename)) {
     printf("%s does not exist.",test_filename.c_str());
   }
-  ft.DownloadFile(test_filename);
+  ft.DownloadFile("/apps/ldrive/"+test_filename);
   EXPECT_TRUE(fs::exists("Baidu_Yun/" + test_filename));
 
   ft.DeleteFile(test_filename);

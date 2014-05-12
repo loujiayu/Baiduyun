@@ -21,11 +21,11 @@
   printf(
     "Usage: baiduyun [option]\n"
     "options:\n"
-    "-a authenicate: authenticate your account with access token\n"
-    "-d download: download files from /apps/ldrive\n"
-    "-u upload: upload files from ./Baidu_Yun\n"
-    "-s synchronise: detect files need to be downloaded or uploaded and do it\n"
-    "-h help: help message\n");
+    "-a authenicate:  authenticate your account with access token\n"
+    "-d download:     download files from /apps/ldrive\n"
+    "-u upload:       upload files from ./Baidu_Yun\n"
+    "-s synchronise:  detect files need to be downloaded or uploaded and do it\n"
+    "-h help:         help message\n");
   exit(-1);
  }
 
@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
   const std::string kClientSecret  = "QVCr57iC3g8AjX5pRlkbSPIrivAtY1BE";
   while ((c = getopt(argc, argv, "duhs")) != -1) {
     switch (c) {
+      default:
       case 'h': {
         ExitWithHelp();
         break;
@@ -75,6 +76,7 @@ int main(int argc, char *argv[]) {
         upload = true;
         break;
       }
+
     }
   }
 
@@ -87,9 +89,12 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   FileTrans ft(access_token);
-  std::string p = fs::current_path().string() + "/Baidu_Yun";
-  ft.Syn(p);
+  if(download)
+    ft.Downloads(kLocalRoot);
+  else if(upload)
+    ft.Uploads(kLocalRoot);
+  else if(syn)
+    ft.Syn(kLocalRoot);
   std::ofstream ofile(kMarkfile);
-  //ft.FileInfo("/as");
   return 0;
 }

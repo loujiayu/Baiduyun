@@ -43,6 +43,7 @@ class FileTrans {
   void Syn(const std::string& path);
   void SynOperation(int flag,const std::string& path);
   void LocalUpdate(const JsonEntry& jobj,list& flist);
+  void Uploads(const std::string& p);
   void UploadFile(const std::string& path);
   void DeleteFile(const std::string& path);
   int LocalMtimeCmp(const std::string& path);
