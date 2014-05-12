@@ -41,7 +41,10 @@ if (test)
 
   include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-  add_executable(tests src/filetrans_test.cc)
+  add_executable(tests
+    src/filetrans_test.cc
+    src/filesystem_test.cc
+  )
 
   target_link_libraries(tests gtest gtest_main)
 

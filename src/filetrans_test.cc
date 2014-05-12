@@ -76,4 +76,4 @@ TEST(FileTrans,RemoteOperation) {
   }
 }
 
-}
+}  // namespace by
