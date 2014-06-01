@@ -3,7 +3,7 @@ project(baiduyun)
 cmake_minimum_required(VERSION 2.8)
 
 # Options. Turn on with 'cmake -Dmyvarname=ON'.
-option(test "Build all tests." ON)
+option(test "Build all tests." OFF)
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(CURL REQUIRED)
@@ -11,9 +11,9 @@ find_package(CURL REQUIRED)
 set(CMAKE_CXX_FLAGS "-g -Wall -std=gnu++11")
 
 add_library(baiduyun_lib
-  src/Pcs.cc
-  src/JsonEntry.cc
-  src/Http.cc
+  src/pcs.cc
+  src/jsonEntry.cc
+  src/http.cc
   src/filetrans.cc
   src/filesystem.cc
   src/config.cc

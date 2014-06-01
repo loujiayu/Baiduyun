@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   using namespace by;
   JsonEntry config = ReadConfig();
   int c;
-  bool download = false,upload = false,syn = false;
+  bool download = false,upload = false,sync = false;
   const std::string kClientID  = "dOiFFnAqiGhzpsT19ijBqpaM";
   const std::string kClientSecret  = "QVCr57iC3g8AjX5pRlkbSPIrivAtY1BE";
   while ((c = getopt(argc, argv, "duhs")) != -1) {
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         break;
       }
       case 's': {
-        syn = true;
+        sync = true;
         break;
       }
       case 'd': {
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     ft.Downloads(kLocalRoot);
   else if(upload)
     ft.Uploads(kLocalRoot);
-  else if(syn)
+  else if(sync)
     ft.Syn(kLocalRoot);
   std::ofstream ofile(kMarkfile);
   return 0;
