@@ -11,7 +11,7 @@
 #include <string>
 #include <boost/filesystem.hpp>
 #include <forward_list>
-
+#include <map>
 #include "macro.h"
 
 namespace by {
@@ -32,26 +32,30 @@ bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& 
 
 typedef std::forward_list<JsonEntry> list;
 
-enum FileOperation {kDownloads=1,kDelete,kUploads,kPass};
+enum FileOperation {kDownloads=1,kRemoteDelete,kLocalDelete,kUploads,kPass};
 
 class FileTrans {
  public:
   explicit FileTrans(const std::string&  access_token);
+  void Drive(const std::string &p);
   void Downloads(const std::string& p);
   list FileInfo(const std::string& sub_dir = "");
   void DownloadFile(const std::string& path);
-  void Syn(const std::string& path);
-  void SynOperation(int flag,const std::string& path);
+  void Sync(const std::string& path);
+  void SynOperation(FileOperation flag,const std::string& path);
   void LocalUpdate(const JsonEntry& jobj,list& flist);
   void Uploads(const std::string& p);
   void UploadFile(const std::string& path);
   void DeleteFile(const std::string& path);
-  int LocalMtimeCmp(const std::string& path);
-  int RemoteMtimeCmp(const JsonEntry& json);
+  FileOperation LocalMtimeCmp(const std::string& path);
+  FileOperation RemoteMtimeCmp(const JsonEntry& json);
+  void AddToMemTable(FileOperation flag,const std::string& path);
 
  private:
   std::string access_token_;
-  std::string markf;
+  std::string markf_;
+  std::map<std::string,FileOperation> mem_tabel_;
+
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
 };
 

@@ -17,8 +17,6 @@
 
 namespace by {
 
-
-
 std::string ExtractPath(const std::string& p) {
   std::string path = p;
   if(!path.compare(0,kRemoteRoot.size(),kRemoteRoot))
@@ -71,37 +69,45 @@ bool IsExists(const std::string& path,const JsonEntry& jobj) {
     return false;
 }
 
-void FileTrans::SynOperation(int flag,const std::string& path) {
+void FileTrans::AddToMemTable(FileOperation flag,const std::string& path) {
+  if(flag != kPass)
+    mem_tabel_.insert(std::pair<std::string,FileOperation>(path,flag));
+}
+
+void FileTrans::SynOperation(FileOperation flag,const std::string& path) {
   printf("%s \n",path.c_str());
   switch(flag) {
     case kPass :
       printf("pass\n");
       break;
-    case kDownloads : {
+
+    case kDownloads :
       printf("download...");
       DownloadFile(path);
       break;
-    }
-    case kDelete : {
-      printf("deleting...");
-      if(!path.compare(0,kRemoteRoot.size(),kRemoteRoot))
-        DeleteFile(path);
-      else
-        RmDir(path);
+
+    case kRemoteDelete :
+      printf("remote deleting...");
+      DeleteFile(path);
       break;
-    }
-    case kUploads : {
+
+    case kLocalDelete :
+      printf("local deleting...");
+      RmDir(path);
+      break;
+
+    case kUploads :
       printf("uploading...");
       UploadFile(path);
       break;
-    }
+
     default: break;
   }
 }
 
 FileTrans::FileTrans(const std::string&  access_token) :
             access_token_(access_token) ,
-            markf(kMarkfile){}
+            markf_(kMarkfile) {}
 
 JsonEntry::list FileTrans::FileInfo(const std::string& sub_dir) {
   std::string filelist_url = kDPcsURL      +
@@ -189,13 +195,21 @@ void FileTrans::DeleteFile(const std::string& path) {
   HttpGet(post);
 }
 
-void FileTrans::Syn(const std::string& p) {
+void FileTrans::Drive(const std::string &p) {
+  Sync(p);
+  std::cout << mem_tabel_.size() << std::endl;
+  for (auto it = mem_tabel_.begin();it != mem_tabel_.end();++it) {
+    std::cout << it->first << "=>" <<it->second << std::endl;
+  }
+}
+
+void FileTrans::Sync(const std::string& p) {
   if(p.empty()) {
     printf("Please input path name.");
     return;
   }
   using namespace std::placeholders;
-  int op_flag;
+  FileOperation op_flag;
   std::string sub_dir = "";
   if(!fs::exists(kMarkfile))
     std::ofstream ofile(kMarkfile);
@@ -223,45 +237,46 @@ void FileTrans::Syn(const std::string& p) {
       auto file = find_if(remote_flist.begin(),remote_flist.end(),std::bind(IsExists,path,_1));
       if(file == remote_flist.end()) {
         op_flag = LocalMtimeCmp(path);
-        SynOperation(op_flag,path);
+        AddToMemTable(op_flag,path);
       }
-      if(op_flag == kDelete)
+      if(op_flag == kRemoteDelete || op_flag == kLocalDelete)
         continue;
       remote_flist.remove(*file);
       std::string local_path = p + '/' + FileFromPath(path);
-      Syn(local_path);
+      Sync(local_path);
     } else {
       LocalUpdate(*iter,remote_flist);
     }
   }
   if(!remote_flist.empty()){
-    int op_flag;
+    FileOperation op_flag;
     for(auto iter = remote_flist.begin(); iter != remote_flist.end(); ++iter) {
       std::string remote_path = ParseFileName(*iter);
       op_flag = RemoteMtimeCmp(*iter);
-      SynOperation(op_flag,remote_path);
+      AddToMemTable(op_flag,remote_path);
     }
   }
+
 }
 
-int FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
-  int op_flag;
+FileOperation FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
+  FileOperation op_flag;
   unsigned int mtime = fs::last_write_time(kMarkfile);
   if(mtime < ParseFilemTime(json))
     op_flag = kDownloads;
   else
-    op_flag = kDelete;
+    op_flag = kRemoteDelete;
   return op_flag;
 }
 
-int FileTrans::LocalMtimeCmp(const std::string& path) {
-  int op_flag;
+FileOperation FileTrans::LocalMtimeCmp(const std::string& path) {
+  FileOperation op_flag;
   auto mtime = fs::last_write_time(kMarkfile);
   auto ptime = fs::last_write_time(path);
   if(mtime <= ptime)
     op_flag = kUploads;
   else
-    op_flag = kDelete;
+    op_flag = kLocalDelete;
   return op_flag;
 }
 
@@ -269,7 +284,7 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
   using namespace std::placeholders;
 
   std::string path = jobj["path"].Value<std::string>();
-  int op_flag;
+  FileOperation op_flag;
   auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,path,_1));
   if(file == flist.end()) {
     op_flag = LocalMtimeCmp(path);
@@ -289,7 +304,7 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
     }
     flist.remove(*file);
   }
-  SynOperation(op_flag,path);
+  AddToMemTable(op_flag,path);
 }
 
 }  // namespace by

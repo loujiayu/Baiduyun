@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   bool download = false,upload = false,sync = false;
   const std::string kClientID  = "dOiFFnAqiGhzpsT19ijBqpaM";
   const std::string kClientSecret  = "QVCr57iC3g8AjX5pRlkbSPIrivAtY1BE";
-  while ((c = getopt(argc, argv, "duhs")) != -1) {
+  while ((c = getopt(argc, argv, "aduhs")) != -1) {
     switch (c) {
       default:
       case 'h': {
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
   else if(upload)
     ft.Uploads(kLocalRoot);
   else if(sync)
-    ft.Syn(kLocalRoot);
+    ft.Drive(kLocalRoot);
   std::ofstream ofile(kMarkfile);
   return 0;
 }
