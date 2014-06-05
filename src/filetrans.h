@@ -59,7 +59,7 @@ class FileTrans {
   std::string access_token_;
   std::string markf_;
   MemTable mem_tabel_;
-  std::shared_ptr<FileSystem> fs;
+  std::shared_ptr<FileSystem> fs_;
 
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
 };

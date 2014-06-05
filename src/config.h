@@ -10,12 +10,28 @@
 #include <string>
 
 namespace by {
+
 class JsonEntry;
 
-const std::string& ConfigFilename();
-JsonEntry ReadConfig();
-void SaveConfig(const JsonEntry& config);
+namespace log {
 
+class FileIO {
+ public:
+  typedef std::map<std::string,FileOperation> MemTable;
+  FileIO();
+  bool LogReader(MenTable& mem);
+  bool LogWriter(MenTable& mem);
+  JsonEntry ReadConfig();
+  void SaveConfig(const JsonEntry& config);
+
+ private:
+  std::string home_dir_;
+  std::shared_ptr<FileSystem> fs_;
+};
+
+
+
+}  // namespace log
 }  // namespace by
 
 
