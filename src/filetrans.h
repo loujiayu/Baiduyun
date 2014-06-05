@@ -25,6 +25,7 @@ const std::string kMarkfile    = boost::filesystem::current_path().string() + "/
 const std::string kLocalRoot   = boost::filesystem::current_path().string() + "/Baidu_Yun";
 
 class JsonEntry;
+class FileSystem;
 
 std::string ExtractPath(const std::string& p);
 bool IsExists(const std::string& path,const JsonEntry& jobj);
@@ -55,6 +56,7 @@ class FileTrans {
   std::string access_token_;
   std::string markf_;
   std::map<std::string,FileOperation> mem_tabel_;
+  FileSystem *fs;
 
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
 };

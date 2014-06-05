@@ -13,8 +13,9 @@ namespace by {
 const std::string test_filename = "mytest781239safjk";
 
 TEST(RmdirTest, FileDelte) {
-  if(!fs::exists(test_filename)) {
-    if(!fs::create_directory(test_filename)){
+  FileSystem *fs(NULL);
+  if(!fs->IsExist(test_filename)) {
+    if(!fs->CreatDir(test_filename)){
       printf("Pathname invalid.");
       return;
     }
@@ -26,9 +27,10 @@ TEST(RmdirTest, FileDelte) {
   } else {
     printf("Error opening file");
   }
-  EXPECT_TRUE(fs::exists(test_filename));
-  RmDir(test_filename);
-  EXPECT_FALSE(fs::exists(test_filename));
+  EXPECT_TRUE(fs->IsExist(test_filename));
+  fs->DeleteDir(test_filename);
+  EXPECT_FALSE(fs->IsExist(test_filename));
+  delete fs;
 }
 
 

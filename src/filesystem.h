@@ -9,7 +9,7 @@
 
 #include <string>
 #include <boost/filesystem.hpp>
-
+#include <forward_list>
 #include "macro.h"
 
 namespace fs = boost::filesystem;
@@ -23,27 +23,41 @@ class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
   DirIter();
   DirIter(const std::string& path);
   DirIter(const DirIter& mit) : path_(mit.path_),
-                                filesystem_iter(mit.filesystem_iter),
-                                jstring(mit.jstring) {}
+                                filesystem_iter_(mit.filesystem_iter_),
+                                jstring_(mit.jstring_) {}
   DirIter& operator++();
   DirIter operator++(int);
   JsonEntry operator*();
   bool operator!=(const DirIter& rhs) const {
-    return filesystem_iter != rhs.filesystem_iter;
+    return filesystem_iter_ != rhs.filesystem_iter_;
   }
   bool operator==(const DirIter& rhs) const {
-    return filesystem_iter == rhs.filesystem_iter;
+    return filesystem_iter_ == rhs.filesystem_iter_;
   }
   void UpdatePara();
  private:
   std::string path_;
-  fs::directory_iterator filesystem_iter;
-  std::string jstring;
+  fs::directory_iterator filesystem_iter_;
+  std::string jstring_;
+};
+
+class FileSystem {
+ public:
+  FileSystem() {};
+  bool CreatDir(const std::string &path);
+  bool DeleteDir(const std::string &path);
+  bool IsLocalDir(const std::string &path);
+  bool IsExist(const std::string &path);
+  unsigned int LastWriteTime(const std::string &path);
+  void GetChild(std::forward_list<JsonEntry> &list, const std::string &path);
+  bool DeleteFile(const std::string &path);
+  bool DirIsEmpty(const std::string &path);
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FileSystem);
 };
 
 std::string  MD5(std::streambuf *file);
 bool IsDir(const JsonEntry& jobj);
-void RmDir(const std::string& path);
 std::string ParseFileName(const JsonEntry& jobj);
 unsigned int ParseFilemTime(const JsonEntry& json);
 std::string FileFromPath(const std::string& path);

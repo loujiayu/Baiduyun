@@ -10,8 +10,8 @@
 #include "filetrans.h"
 #include "jsonentry.h"
 #include "config.h"
-
-namespace fs = boost::filesystem;
+#include "filesystem.h"
+//namespace fs = boost::filesystem;
 
 namespace by {
 
@@ -21,7 +21,7 @@ TEST(ExtractPathTest,ExtractPath) {
   std::string t1 = ExtractPath("/apps/ldrive\\mytest//baidu");
   std::string t2 = ExtractPath("/apps/ldrive//\\mytest\\baidu");
   std::string t3 = ExtractPath("/apps/ldrive//\\mytest/\\baidu\\//\\");
-  std::string t4 = ExtractPath(fs::current_path().string() + "/Baidu_Yun" +"/mytest\\baidu");
+  std::string t4 = ExtractPath(boost::filesystem::current_path().string() + "/Baidu_Yun" +"/mytest\\baidu");
   EXPECT_STREQ("mytest/baidu",t1.c_str());
   EXPECT_STREQ("mytest/baidu",t2.c_str());
   EXPECT_STREQ("mytest/baidu",t3.c_str());
@@ -44,6 +44,7 @@ TEST(IsMd5MatchTest,IsMd5Match) {
 }
 
 TEST(FileTrans,RemoteOperation) {
+  FileSystem *fs(NULL);
   using namespace std::placeholders;
   JsonEntry config = ReadConfig();
   FileTrans ft(config["access_token"].Value<std::string>());
@@ -60,20 +61,21 @@ TEST(FileTrans,RemoteOperation) {
   auto file = find_if(flist.begin(),flist.end(),std::bind(IsExists,test_filename,_1));
   EXPECT_TRUE(file != flist.end());
 
-  if(!fs::remove(test_filename)) {
+  if(!fs->DeleteFile(test_filename)) {
     printf("%s does not exist.",test_filename.c_str());
   }
   ft.DownloadFile("/apps/ldrive/"+test_filename);
-  EXPECT_TRUE(fs::exists("Baidu_Yun/" + test_filename));
+  EXPECT_TRUE(fs->IsExist("Baidu_Yun/" + test_filename));
 
   ft.DeleteFile(test_filename);
   flist = ft.FileInfo("");
   file = find_if(flist.begin(),flist.end(),std::bind(IsExists,test_filename,_1));
   EXPECT_TRUE(file == flist.end());
 
-  if(!fs::remove("Baidu_Yun/" + test_filename)) {
+  if(!fs->DeleteFile("Baidu_Yun/" + test_filename)) {
     printf("%s does not exist ./Baidu_Yun/.",test_filename.c_str());
   }
+  delete fs;
 }
 
 }  // namespace by
