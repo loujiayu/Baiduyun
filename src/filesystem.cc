@@ -127,6 +127,18 @@ bool FileSystem::DeleteDir(const std::string& path) {
   return true;
 }
 
+bool FileSystem::NewWritableFile(WritableFile **file,const std::string &fname) {
+  FILE *f = fopen(fname.c_str(),"w");
+  if(f == NULL) {
+    *file = NULL;
+    fprintf(stderr,"open file:%s failed",fname.c_str());
+    return false
+  } else {
+    *file = new WritableFile(f,fname);
+  }
+  return true;
+}
+
 std::string MD5(std::streambuf *file)
 {
   char buf[64 * 1024];
