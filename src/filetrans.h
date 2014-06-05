@@ -37,13 +37,14 @@ enum FileOperation {kDownloads=1,kRemoteDelete,kLocalDelete,kUploads,kPass};
 
 class FileTrans {
  public:
+
   explicit FileTrans(const std::string&  access_token);
   void Drive(const std::string &p);
   void Downloads(const std::string& p);
   list FileInfo(const std::string& sub_dir = "");
   void DownloadFile(const std::string& path);
   void Sync(const std::string& path);
-  void SynOperation(FileOperation flag,const std::string& path);
+  void SynOperation();
   void LocalUpdate(const JsonEntry& jobj,list& flist);
   void Uploads(const std::string& p);
   void UploadFile(const std::string& path);
@@ -53,10 +54,12 @@ class FileTrans {
   void AddToMemTable(FileOperation flag,const std::string& path);
 
  private:
+  typedef std::map<std::string,FileOperation> MemTable;
+
   std::string access_token_;
   std::string markf_;
-  std::map<std::string,FileOperation> mem_tabel_;
-  FileSystem *fs;
+  MemTable mem_tabel_;
+  std::shared_ptr<FileSystem> fs;
 
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
 };

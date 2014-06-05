@@ -74,34 +74,40 @@ void FileTrans::AddToMemTable(FileOperation flag,const std::string& path) {
     mem_tabel_.insert(std::pair<std::string,FileOperation>(path,flag));
 }
 
-void FileTrans::SynOperation(FileOperation flag,const std::string& path) {
-  printf("%s \n",path.c_str());
-  switch(flag) {
-    case kPass :
-      printf("pass\n");
-      break;
+void FileTrans::SynOperation() {
+  FileOperation flag;
+  std::string path;
+  for(auto iter = mem_tabel_.begin();iter != mem_tabel_.end();++iter) {
+    path = iter->first;
+    flag = iter->second;
+    switch(flag) {
+      case kPass :
+        printf("pass\n");
+        break;
 
-    case kDownloads :
-      printf("download...");
-      DownloadFile(path);
-      break;
+      case kDownloads :
+        printf("download...");
+        DownloadFile(path);
+        break;
 
-    case kRemoteDelete :
-      printf("remote deleting...");
-      DeleteFile(path);
-      break;
+      case kRemoteDelete :
+        printf("remote deleting...");
+        DeleteFile(path);
+        break;
 
-    case kLocalDelete :
-      printf("local deleting...");
-      fs->DeleteDir(path);
-      break;
+      case kLocalDelete :
+        printf("local deleting...");
+        fs->DeleteDir(path);
+        break;
 
-    case kUploads :
-      printf("uploading...");
-      UploadFile(path);
-      break;
+      case kUploads :
+        printf("uploading...");
+        UploadFile(path);
+        break;
 
-    default: break;
+      default: break;
+    }
+
   }
 }
 
@@ -202,6 +208,7 @@ void FileTrans::Drive(const std::string &p) {
   for (auto it = mem_tabel_.begin();it != mem_tabel_.end();++it) {
     std::cout << it->first << "=>" <<it->second << std::endl;
   }
+  SynOperation();
 }
 
 void FileTrans::Sync(const std::string& p) {
