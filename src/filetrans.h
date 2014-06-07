@@ -12,9 +12,14 @@
 #include <boost/filesystem.hpp>
 #include <forward_list>
 #include <map>
-#include "macro.h"
 
+#include "macro.h"
+#include "log.h"
 namespace by {
+enum FileOperation {kDownloads=1,kRemoteDelete,kLocalDelete,kUploads,kPass};
+
+typedef std::map<std::string,FileOperation> MemTable;
+typedef std::forward_list<JsonEntry> list;
 
 const std::string kDPcsURL     = "https://d.pcs.baidu.com/rest/2.0/pcs/file";
 const std::string kCPcsURL     = "https://c.pcs.baidu.com/rest/2.0/pcs/file";
@@ -27,18 +32,10 @@ const std::string kLocalRoot   = boost::filesystem::current_path().string() + "/
 class JsonEntry;
 class FileSystem;
 
-std::string ExtractPath(const std::string& p);
-bool IsExists(const std::string& path,const JsonEntry& jobj);
-bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& jobj);
-
-typedef std::forward_list<JsonEntry> list;
-
-enum FileOperation {kDownloads=1,kRemoteDelete,kLocalDelete,kUploads,kPass};
-
 class FileTrans {
  public:
-
   explicit FileTrans(const std::string&  access_token);
+  ~FileTrans();
   void Drive(const std::string &p);
   void Downloads(const std::string& p);
   list FileInfo(const std::string& sub_dir = "");
@@ -54,16 +51,18 @@ class FileTrans {
   void AddToMemTable(FileOperation flag,const std::string& path);
 
  private:
-  typedef std::map<std::string,FileOperation> MemTable;
-
   std::string access_token_;
   std::string markf_;
   MemTable mem_tabel_;
-  std::shared_ptr<FileSystem> fs_;
-
+  FileSystem* fs_;
+  log::LogFile* log_;
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
 };
 
+std::string ExtractPath(const std::string& p);
+bool IsExists(const std::string& path,const JsonEntry& jobj);
+bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& jobj);
+bool MapToString(MemTable &mem,char *ptr);
 }  // namespace by
 
 #endif  // SRC_FILETRANS_H_

@@ -15,7 +15,7 @@
 #include "jsonentry.h"
 #include "filetrans.h"
 #include "filesystem.h"
-#include "config.h"
+#include "log.h"
 
  void ExitWithHelp() {
   printf(
@@ -31,7 +31,8 @@
 
 int main(int argc, char *argv[]) {
   using namespace by;
-  JsonEntry config = ReadConfig();
+  log::LogFile fp(NULL);
+  JsonEntry config = fp.ReadConfig();
   int c;
   bool download = false,upload = false,sync = false;
   const std::string kClientID  = "dOiFFnAqiGhzpsT19ijBqpaM";
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
         config.Add("access_token", JsonEntry(baidu_oauth.access_token()));
         assert(config["access_token"].Value<std::string>() ==
           baidu_oauth.access_token());
-        SaveConfig(config);
+        fp.SaveConfig(config);
         break;
       }
       case 's': {

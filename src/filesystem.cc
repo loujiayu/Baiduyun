@@ -3,6 +3,7 @@
  * This file is released under the MIT License
  * http://opensource.org/licenses/MIT
  */
+#include <stdio.h>
 #include <unistd.h>
 #include <openssl/evp.h>
 #include <iostream>
@@ -71,10 +72,11 @@ std::string FileFromPath(const std::string& path) {
 }
 
 bool FileSystem::CreatDir(const std::string &path) {
-  if(!fs::create_directory(path)){
-    printf("Pathname:%s invalid.",path.c_str());
-    return false;
-  }
+  if(!IsExist(path))
+    if(!fs::create_directory(path)){
+      printf("Pathname:%s invalid.",path.c_str());
+      return false;
+    }
   return true;
 }
 
@@ -105,19 +107,50 @@ bool FileSystem::DirIsEmpty(const std::string &path) {
 bool FileSystem::DeleteDir(const std::string& path) {
   boost::system::error_code ec;
   if (!boost::filesystem::remove_all(path, ec)) {
-    fprintf(stderr,"%s:%s.", path, ec.message());
+    std::cout << path << ':' << ec.message();
+    return false;
   }
   return true;
 }
 
 bool FileSystem::NewWritableFile(WritableFile **file,const std::string &fname) {
-  FILE *f = fopen(fname.c_str(),"w");
+
+  std::string path = "MyBaidu/" + fname;
+  FILE *f = fopen(path.c_str(),"w");
   if(f == NULL) {
     *file = NULL;
-    fprintf(stderr,"open file:%s failed",fname.c_str());
-    return false
+    fprintf(stderr,"open file:%s failed",path.c_str());
+    return false;
   } else {
-    *file = new WritableFile(f,fname);
+    *file = new WritableFile(path,f);
+  }
+  return true;
+}
+
+WritableFile::WritableFile(const std::string& fname, FILE* f) :
+    filename_(fname), file_(f) {}
+
+bool WritableFile::Append(const char *data,size_t n) {
+  size_t r = fwrite(data, 1, n, file_);
+  if(r != n) {
+    fprintf(stderr, "file:%s write error!", filename_.c_str());
+    return false;
+  }
+  return true;
+}
+
+bool WritableFile::Close() {
+  if(fclose(file_) != 0) {
+    fprintf(stderr, "file:%s close error!", filename_.c_str());
+    return false;
+  }
+  return true;
+}
+
+bool WritableFile::Flush() {
+  if(fflush(file_) != 0) {
+    fprintf(stderr, "file:%s flush error!", filename_.c_str());
+    return false;
   }
   return true;
 }

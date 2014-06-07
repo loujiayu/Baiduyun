@@ -9,7 +9,7 @@
 
 #include "filetrans.h"
 #include "jsonentry.h"
-#include "config.h"
+#include "log.h"
 #include "filesystem.h"
 //namespace fs = boost::filesystem;
 
@@ -46,7 +46,8 @@ TEST(IsMd5MatchTest,IsMd5Match) {
 TEST(FileTrans,RemoteOperation) {
   FileSystem *fs(NULL);
   using namespace std::placeholders;
-  JsonEntry config = ReadConfig();
+  log::LogFile fp(NULL);
+  JsonEntry config = fp.ReadConfig();
   FileTrans ft(config["access_token"].Value<std::string>());
 
   std::ofstream ofile(test_filename);

@@ -18,6 +18,22 @@ namespace by {
 
 class JsonEntry;
 
+const std::string kHomeDirectory  = "/apps/ldrive";
+
+class WritableFile {
+ public:
+  WritableFile(const std::string& fname, FILE* f);
+  bool Append(const char *data,size_t n);
+  bool Close();
+  bool Flush();
+
+ private:
+  std::string filename_;
+  FILE *file_;
+
+  DISALLOW_COPY_AND_ASSIGN(WritableFile);
+};
+
 class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
  public:
   DirIter();
@@ -58,17 +74,6 @@ class FileSystem {
   bool NewWritableFile(WritableFile **file,const std::string &fname);
  private:
   DISALLOW_COPY_AND_ASSIGN(FileSystem);
-};
-
-class WritableFile {
- public:
-  WritableFile();
-  void Append(const std::string &data);
-  void Close();
-  void Flush();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(WritableFile);
 };
 
 std::string  MD5(std::streambuf *file);

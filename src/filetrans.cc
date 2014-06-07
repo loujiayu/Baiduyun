@@ -9,13 +9,34 @@
 #include <json-c/json.h>
 #include <forward_list>
 #include <algorithm>
+#include <memory>
 
 #include "filesystem.h"
 #include "filetrans.h"
 #include "http.h"
 #include "jsonentry.h"
+#include "log.h"
 
 namespace by {
+bool MapToString(MemTable &mem,char **ptr) {
+  char buf[2];
+  buf[1] = '\n';
+  std::string str;
+  for(auto iter = mem.begin();iter != mem.end();++iter) {
+    str.append(iter->first);
+    assert(iter->second <= 0xff);
+    buf[0] = static_cast<char>(iter->second);
+    str.insert(str.size(),buf,2);
+  }
+  *ptr = new char[str.size() + 1];
+  //ptr = (char *)malloc(str.size()+1);
+  memcpy(*ptr,str.data(),str.size());
+  if(*ptr == NULL)
+    return false;
+
+  (*ptr)[str.size()] = '\0';
+  return true;
+}
 
 std::string ExtractPath(const std::string& p) {
   std::string path = p;
@@ -114,7 +135,13 @@ void FileTrans::SynOperation() {
 FileTrans::FileTrans(const std::string&  access_token) :
             access_token_(access_token) ,
             markf_(kMarkfile),
-            fs_(NULL) {}
+            fs_(NULL),
+            log_(NULL) {}
+
+FileTrans::~FileTrans() {
+  delete log_;
+  delete fs_;
+}
 
 JsonEntry::list FileTrans::FileInfo(const std::string& sub_dir) {
   std::string filelist_url = kDPcsURL      +
@@ -204,11 +231,25 @@ void FileTrans::DeleteFile(const std::string& path) {
 
 void FileTrans::Drive(const std::string &p) {
   Sync(p);
+
   std::cout << mem_tabel_.size() << std::endl;
   for (auto it = mem_tabel_.begin();it != mem_tabel_.end();++it) {
     std::cout << it->first << "=>" <<it->second << std::endl;
   }
-  SynOperation();
+
+  char *buf = NULL;
+  if(!MapToString(mem_tabel_,buf)) {
+    throw std::runtime_error("alloc memory error!");
+  }
+  WritableFile* lfile;
+  fs_->NewWritableFile(&lfile,"log_history");
+  log_ = new log::LogFile(lfile);
+  bool flag = log_->LogWriter(&buf);
+
+  delete lfile;
+  delete buf;
+  assert(flag == true);
+  //SynOperation();
 }
 
 void FileTrans::Sync(const std::string& p) {
