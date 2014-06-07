@@ -20,6 +20,10 @@ FileIO::FileIO() : home_dir_(getenv("HOME") + "/MyBaidu"),
     fs_->CreatDir(home_dir_);
 }
 
+bool LogWriter(MenTable &mem) {
+
+}
+
 JsonEntry FileIO::ReadConfig() {
   std::string config_file = home_dir_ + "/.baiduyun";
   std::ifstream ifile(config_file);
@@ -37,4 +41,6 @@ void FileIO::SaveConfig(const JsonEntry& config) {
   std::ofstream ofile(ConfigFilename().c_str());
   ofile << config;
 }
+
+}  // namespace log
 }  // namespace by

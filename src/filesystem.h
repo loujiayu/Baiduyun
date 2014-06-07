@@ -44,16 +44,31 @@ class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
 class FileSystem {
  public:
   FileSystem() {};
+
   bool CreatDir(const std::string &path);
   bool DeleteDir(const std::string &path);
   bool IsLocalDir(const std::string &path);
   bool IsExist(const std::string &path);
-  unsigned int LastWriteTime(const std::string &path);
-  void GetChild(std::forward_list<JsonEntry> &list, const std::string &path);
   bool DeleteFile(const std::string &path);
   bool DirIsEmpty(const std::string &path);
+
+  void GetChild(std::forward_list<JsonEntry> &list, const std::string &path);
+  unsigned int LastWriteTime(const std::string &path);
+
+  bool NewWritableFile(WritableFile **file,const std::string &fname);
  private:
   DISALLOW_COPY_AND_ASSIGN(FileSystem);
+};
+
+class WritableFile {
+ public:
+  WritableFile();
+  void Append(const std::string &data);
+  void Close();
+  void Flush();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(WritableFile);
 };
 
 std::string  MD5(std::streambuf *file);

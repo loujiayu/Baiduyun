@@ -103,27 +103,10 @@ bool FileSystem::DirIsEmpty(const std::string &path) {
 }
 
 bool FileSystem::DeleteDir(const std::string& path) {
-  if(!IsLocalDir(path)) {
-    return DeleteFile(path);;
+  boost::system::error_code ec;
+  if (!boost::filesystem::remove_all(path, ec)) {
+    fprintf(stderr,"%s:%s.", path, ec.message());
   }
-  std::forward_list<JsonEntry> flist;
-  GetChild(flist,path);
-  for (auto iter = flist.begin();iter != flist.end();++iter) {
-    std::string path_name = ParseFileName(*iter);
-    if(IsLocalDir(path_name)) {
-      if(DirIsEmpty(path_name)) {
-        rmdir(path_name.c_str());
-      } else {
-        DeleteDir(path_name);
-      }
-      if(IsExist(path_name)&&DirIsEmpty(path_name))
-        rmdir(path_name.c_str());
-    } else {
-      DeleteFile(path_name);
-    }
-  }
-  if(IsExist(path)&&DirIsEmpty(path))
-    rmdir(path.c_str());
   return true;
 }
 

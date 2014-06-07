@@ -97,7 +97,7 @@ void FileTrans::SynOperation() {
 
       case kLocalDelete :
         printf("local deleting...");
-        fs->DeleteDir(path);
+        fs_->DeleteDir(path);
         break;
 
       case kUploads :
@@ -114,7 +114,7 @@ void FileTrans::SynOperation() {
 FileTrans::FileTrans(const std::string&  access_token) :
             access_token_(access_token) ,
             markf_(kMarkfile),
-            fs(NULL) {}
+            fs_(NULL) {}
 
 JsonEntry::list FileTrans::FileInfo(const std::string& sub_dir) {
   std::string filelist_url = kDPcsURL      +
@@ -131,8 +131,8 @@ void FileTrans::Downloads(const std::string& p) {
   std::string sub_dir = "";
   if(p != kLocalRoot)
     sub_dir = p.substr(kLocalRoot.size());
-  if(!fs->IsExist(p))
-    fs->CreatDir(p);
+  if(!fs_->IsExist(p))
+    fs_->CreatDir(p);
   JsonEntry::list remote_flist = FileInfo(sub_dir);
   if(remote_flist.empty()) {
     printf("%s is empty.\n",p.c_str());
@@ -167,10 +167,10 @@ void FileTrans::DownloadFile(const std::string& download_file) {
 
 void FileTrans::Uploads(const std::string& p) {
   std::forward_list<JsonEntry> local_flist;
-  fs->GetChild(local_flist,p);
+  fs_->GetChild(local_flist,p);
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
     std::string path = ParseFileName(*iter);
-    bool isdir = fs->IsLocalDir(path);
+    bool isdir = fs_->IsLocalDir(path);
     if(isdir) {
       Uploads(path);
     } else {
@@ -219,11 +219,11 @@ void FileTrans::Sync(const std::string& p) {
   using namespace std::placeholders;
   FileOperation op_flag;
   std::string sub_dir = "";
-  if(!fs->IsExist(kMarkfile))
+  if(!fs_->IsExist(kMarkfile))
     std::ofstream ofile(kMarkfile);
 
-  if(!fs->IsExist(p)) {
-    if(!fs->CreatDir(p)){
+  if(!fs_->IsExist(p)) {
+    if(!fs_->CreatDir(p)){
       printf("Pathname invalid.");
       return;
     }
@@ -237,10 +237,10 @@ void FileTrans::Sync(const std::string& p) {
 
   JsonEntry::list remote_flist = FileInfo(sub_dir);
   std::forward_list<JsonEntry> local_flist;
-  fs->GetChild(local_flist,p);
+  fs_->GetChild(local_flist,p);
   for (auto iter = local_flist.begin(); iter != local_flist.end(); ++iter) {
     std::string path = ParseFileName(*iter);
-    bool isdir = fs->IsLocalDir(path);
+    bool isdir = fs_->IsLocalDir(path);
     if(isdir) {
       auto file = find_if(remote_flist.begin(),remote_flist.end(),std::bind(IsExists,path,_1));
       if(file == remote_flist.end()) {
@@ -269,7 +269,7 @@ void FileTrans::Sync(const std::string& p) {
 
 FileOperation FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
   FileOperation op_flag;
-  unsigned int mtime = fs->LastWriteTime(kMarkfile);
+  unsigned int mtime = fs_->LastWriteTime(kMarkfile);
   if(mtime < ParseFilemTime(json))
     op_flag = kDownloads;
   else
@@ -279,8 +279,8 @@ FileOperation FileTrans::RemoteMtimeCmp(const JsonEntry& json) {
 
 FileOperation FileTrans::LocalMtimeCmp(const std::string& path) {
   FileOperation op_flag;
-  auto mtime = fs->LastWriteTime(kMarkfile);
-  auto ptime = fs->LastWriteTime(path);
+  auto mtime = fs_->LastWriteTime(kMarkfile);
+  auto ptime = fs_->LastWriteTime(path);
   if(mtime <= ptime)
     op_flag = kUploads;
   else
@@ -302,7 +302,7 @@ void FileTrans::LocalUpdate(const JsonEntry& jobj,JsonEntry::list& flist) {
     auto remote_file = find_if(flist.begin(),flist.end(),std::bind(IsMd5Match,path,md5,_1));
     if(remote_file == flist.end()) {
       auto remote_time = (*file)["mtime"].Value<unsigned int>();
-      unsigned int local_time = fs->LastWriteTime(path);
+      unsigned int local_time = fs_->LastWriteTime(path);
       if(remote_time < local_time)
         op_flag = kUploads;
       else
