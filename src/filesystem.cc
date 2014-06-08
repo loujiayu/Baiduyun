@@ -113,24 +113,40 @@ bool FileSystem::DeleteDir(const std::string& path) {
   return true;
 }
 
-bool FileSystem::NewWritableFile(WritableFile **file,const std::string &fname) {
-
+bool FileSystem::NewFile(File **file,const std::string &fname, int mode) {
   std::string path = "MyBaidu/" + fname;
-  FILE *f = fopen(path.c_str(),"w");
+  FILE *f;
+  if(mode > 0)
+    f = fopen(path.c_str(),"w");
+  else
+    f = fopen(path.c_str(),"r");
   if(f == NULL) {
     *file = NULL;
     fprintf(stderr,"open file:%s failed",path.c_str());
     return false;
   } else {
-    *file = new WritableFile(path,f);
+    *file = new File(path,f);
   }
   return true;
 }
 
-WritableFile::WritableFile(const std::string& fname, FILE* f) :
+File::File(const std::string& fname, FILE* f) :
     filename_(fname), file_(f) {}
 
-bool WritableFile::Append(const char *data,size_t n) {
+bool File::Read(char **buffer) {
+  fseek(file_, 0, SEEK_END);
+  size_t fsize = ftell(file_);
+  rewind(file_);
+  *buffer = (char*)malloc(sizeof(char)*fsize);
+  size_t r = fread(*buffer, 1, fsize, file_);
+  if(r != fsize) {
+    fprintf(stderr, "file:%s read error!", filename_.c_str());
+    return false;
+  }
+  return true;
+}
+
+bool File::Append(const char *data,size_t n) {
   size_t r = fwrite(data, 1, n, file_);
   if(r != n) {
     fprintf(stderr, "file:%s write error!", filename_.c_str());
@@ -139,7 +155,7 @@ bool WritableFile::Append(const char *data,size_t n) {
   return true;
 }
 
-bool WritableFile::Close() {
+bool File::Close() {
   if(fclose(file_) != 0) {
     fprintf(stderr, "file:%s close error!", filename_.c_str());
     return false;
@@ -147,7 +163,7 @@ bool WritableFile::Close() {
   return true;
 }
 
-bool WritableFile::Flush() {
+bool File::Flush() {
   if(fflush(file_) != 0) {
     fprintf(stderr, "file:%s flush error!", filename_.c_str());
     return false;

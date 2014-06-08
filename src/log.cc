@@ -15,7 +15,7 @@ namespace by {
 
 namespace log {
 
-LogFile::LogFile(WritableFile *dest) : home_dir_("MyBaidu"),
+LogFile::LogFile(File *dest) : home_dir_("MyBaidu"),
                    fs_(NULL),
                    dest_(dest) {
     fs_->CreatDir(home_dir_);
@@ -24,6 +24,11 @@ LogFile::LogFile(WritableFile *dest) : home_dir_("MyBaidu"),
 LogFile::~LogFile() {
   delete fs_;
   delete dest_;
+}
+
+bool LogFile::LogReader(char **ptr) {
+  bool flag = dest_->Read(ptr);
+  return flag;
 }
 
 bool LogFile::LogWriter(const char *ptr) {

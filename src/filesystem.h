@@ -18,9 +18,10 @@ namespace by {
 
 class JsonEntry;
 
-class WritableFile {
+class File {
  public:
-  WritableFile(const std::string& fname, FILE* f);
+  File(const std::string& fname, FILE* f);
+  bool Read(char **buffer);
   bool Append(const char *data,size_t n);
   bool Close();
   bool Flush();
@@ -29,7 +30,7 @@ class WritableFile {
   std::string filename_;
   FILE *file_;
 
-  DISALLOW_COPY_AND_ASSIGN(WritableFile);
+  DISALLOW_COPY_AND_ASSIGN(File);
 };
 
 class DirIter : public std::iterator<std::input_iterator_tag,JsonEntry> {
@@ -69,7 +70,7 @@ class FileSystem {
   void GetChild(std::forward_list<JsonEntry> &list, const std::string &path);
   unsigned int LastWriteTime(const std::string &path);
 
-  bool NewWritableFile(WritableFile **file,const std::string &fname);
+  bool NewFile(File **file, const std::string &fname, int mode);
  private:
   DISALLOW_COPY_AND_ASSIGN(FileSystem);
 };

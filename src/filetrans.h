@@ -55,7 +55,7 @@ class FileTrans {
  private:
   std::string access_token_;
   std::string markf_;
-  MemTable mem_tabel_;
+  MemTable mem_table_;
   FileSystem* fs_;
   log::LogFile* log_;
   DISALLOW_COPY_AND_ASSIGN(FileTrans);
@@ -64,7 +64,8 @@ class FileTrans {
 std::string ExtractPath(const std::string& p);
 bool IsExists(const std::string& path,const JsonEntry& jobj);
 bool IsMd5Match(const std::string& path,const std::string& md5,const JsonEntry& jobj);
-bool MapToString(MemTable &mem,char **ptr);
+bool MapToString(const MemTable &mem,char **ptr);
+void StringToMap(MemTable &mem,char **ptr);
 }  // namespace by
 
 #endif  // SRC_FILETRANS_H_

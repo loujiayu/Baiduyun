@@ -13,7 +13,7 @@
 namespace by {
 
 class JsonEntry;
-class WritableFile;
+class File;
 class FileSystem;
 
 namespace log {
@@ -21,10 +21,10 @@ namespace log {
 class LogFile {
  public:
   LogFile();
-  LogFile(WritableFile* dest);
+  LogFile(File* dest);
   ~LogFile();
 
- //bool LogReader(MenTable& mem);
+  bool LogReader(char **ptr);
   bool LogWriter(const char *ptr);
 
   JsonEntry ReadConfig();
@@ -34,7 +34,7 @@ class LogFile {
 
   std::string home_dir_;
   FileSystem* fs_;
-  WritableFile *dest_;
+  File *dest_;
 };
 
 

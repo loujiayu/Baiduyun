@@ -18,7 +18,7 @@
 #include "log.h"
 
 namespace by {
-bool MapToString(MemTable &mem,char **ptr) {
+bool MapToString(const MemTable &mem,char **ptr) {
   char buf[2];
   buf[1] = '\n';
   std::string str;
@@ -28,13 +28,24 @@ bool MapToString(MemTable &mem,char **ptr) {
     buf[0] = static_cast<char>(iter->second);
     str.insert(str.size(),buf,2);
   }
-  *ptr = (char *)malloc(str.size()+1);
+  *ptr = (char *)malloc(sizeof(char)*(str.size()+1));
   memcpy(*ptr,str.data(),str.size());
   if(*ptr == NULL)
     return false;
 
   (*ptr)[str.size()] = '\0';
   return true;
+}
+
+void StringToMap(MemTable &mem,char **ptr) {
+  std::string str = *ptr;
+  size_t first = 0;
+  size_t found = str.find_first_of('\n');
+  while (found != std::string::npos) {
+    mem[str.substr(first, found-1-first)] = static_cast<FileOperation>(str[found - 1]);
+    first = found + 1;
+    found = str.find_first_of('\n', found + 1);
+  }
 }
 
 std::string ExtractPath(const std::string& p) {
@@ -91,13 +102,13 @@ bool IsExists(const std::string& path,const JsonEntry& jobj) {
 
 void FileTrans::AddToMemTable(FileOperation flag,const std::string& path) {
   if(flag != kPass)
-    mem_tabel_.insert(std::pair<std::string,FileOperation>(path,flag));
+    mem_table_.insert(std::pair<std::string,FileOperation>(path,flag));
 }
 
 void FileTrans::SynOperation() {
   FileOperation flag;
   std::string path;
-  for(auto iter = mem_tabel_.begin();iter != mem_tabel_.end();++iter) {
+  for(auto iter = mem_table_.begin();iter != mem_table_.end();++iter) {
     path = iter->first;
     flag = iter->second;
     switch(flag) {
@@ -229,25 +240,48 @@ void FileTrans::DeleteFile(const std::string& path) {
 }
 
 void FileTrans::Drive(const std::string &p) {
-  Sync(p);
+  File* lfile;
+  char *buf = NULL;
+  bool is_ok;
+  if(fs_->IsExist("Mybaidu/log_history")){
+    is_ok = fs_->NewFile(&lfile,"log_history",-1);
+    if(!is_ok)
+      return;
 
-  std::cout << mem_tabel_.size() << std::endl;
-  for (auto it = mem_tabel_.begin();it != mem_tabel_.end();++it) {
+    log_ = new log::LogFile(lfile);
+    is_ok = log_->LogReader(&buf);
+    if(!is_ok)
+      return;
+    StringToMap(mem_table_,&buf);
+    SynOperation();
+    lfile->Close();
+    mem_table_.clear();
+    delete buf;
+    delete log_;
+    fs_->DeleteFile("Mybaidu/log_history");
+  }
+  Sync(p);
+  std::cout << mem_table_.size() << std::endl;
+  for (auto it = mem_table_.begin();it != mem_table_.end();++it) {
     std::cout << it->first << "=>" <<it->second << std::endl;
   }
-  if(!mem_tabel_.empty()) {
-    char *buf = NULL;
-    if(!MapToString(mem_tabel_,&buf)) {
+  if(!mem_table_.empty()) {
+    if(!MapToString(mem_table_,&buf)) {
       throw std::runtime_error("memory alloc error!");
     }
-    WritableFile* lfile;
-    fs_->NewWritableFile(&lfile,"log_history");
+    is_ok = fs_->NewFile(&lfile,"log_history",1);
+    if(!is_ok)
+      return;
+
     log_ = new log::LogFile(lfile);
-    bool flag = log_->LogWriter(buf);
-    assert(flag == true);
+    is_ok = log_->LogWriter(buf);
+    lfile->Close();
     delete buf;
+    if(!is_ok)
+      return;
+    SynOperation();
+    fs_->DeleteFile("Mybaidu/log_history");
   }
-  //SynOperation();
   std::ofstream ofile(kMarkfile);
 }
 
