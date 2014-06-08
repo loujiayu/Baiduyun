@@ -96,6 +96,5 @@ int main(int argc, char *argv[]) {
     ft.Uploads(kLocalRoot);
   else if(sync)
     ft.Drive(kLocalRoot);
-  std::ofstream ofile(kMarkfile);
   return 0;
 }

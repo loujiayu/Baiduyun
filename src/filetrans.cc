@@ -28,8 +28,7 @@ bool MapToString(MemTable &mem,char **ptr) {
     buf[0] = static_cast<char>(iter->second);
     str.insert(str.size(),buf,2);
   }
-  *ptr = new char[str.size() + 1];
-  //ptr = (char *)malloc(str.size()+1);
+  *ptr = (char *)malloc(str.size()+1);
   memcpy(*ptr,str.data(),str.size());
   if(*ptr == NULL)
     return false;
@@ -236,20 +235,20 @@ void FileTrans::Drive(const std::string &p) {
   for (auto it = mem_tabel_.begin();it != mem_tabel_.end();++it) {
     std::cout << it->first << "=>" <<it->second << std::endl;
   }
-
-  char *buf = NULL;
-  if(!MapToString(mem_tabel_,buf)) {
-    throw std::runtime_error("alloc memory error!");
+  if(!mem_tabel_.empty()) {
+    char *buf = NULL;
+    if(!MapToString(mem_tabel_,&buf)) {
+      throw std::runtime_error("memory alloc error!");
+    }
+    WritableFile* lfile;
+    fs_->NewWritableFile(&lfile,"log_history");
+    log_ = new log::LogFile(lfile);
+    bool flag = log_->LogWriter(buf);
+    assert(flag == true);
+    delete buf;
   }
-  WritableFile* lfile;
-  fs_->NewWritableFile(&lfile,"log_history");
-  log_ = new log::LogFile(lfile);
-  bool flag = log_->LogWriter(&buf);
-
-  delete lfile;
-  delete buf;
-  assert(flag == true);
   //SynOperation();
+  std::ofstream ofile(kMarkfile);
 }
 
 void FileTrans::Sync(const std::string& p) {

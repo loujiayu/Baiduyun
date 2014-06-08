@@ -11,7 +11,6 @@
 #include "jsonentry.h"
 #include "log.h"
 #include "filesystem.h"
-//namespace fs = boost::filesystem;
 
 namespace by {
 
@@ -77,6 +76,23 @@ TEST(FileTrans,RemoteOperation) {
     printf("%s does not exist ./Baidu_Yun/.",test_filename.c_str());
   }
   delete fs;
+}
+
+TEST(MapToStringTest,MapToString) {
+  char *buf = NULL;
+  std::map<std::string,FileOperation> m;
+
+  if(!MapToString(m,&buf))
+    throw std::runtime_error("memory alloc error!");
+  EXPECT_EQ(memcmp(buf, "",strlen(buf)),0);
+  delete buf;
+
+  m["aa"]=kUploads;
+  m["bb"]=kLocalDelete;
+  if(!MapToString(m,&buf))
+    throw std::runtime_error("memory alloc error!");
+  EXPECT_EQ(memcmp(buf, "aa\x04\nbb\x03\n",strlen(buf)),0);
+  delete buf;
 }
 
 }  // namespace by

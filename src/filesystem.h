@@ -18,8 +18,6 @@ namespace by {
 
 class JsonEntry;
 
-const std::string kHomeDirectory  = "/apps/ldrive";
-
 class WritableFile {
  public:
   WritableFile(const std::string& fname, FILE* f);
